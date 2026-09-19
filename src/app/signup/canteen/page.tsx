@@ -44,29 +44,29 @@ export default function CanteenSignupPage() {
 
   const [formData, setFormData] = useState({
     // Section 1: Business Information
-    ownerName: "Sanjay Mehta",
-    email: "sanjay.canteen@campus.in",
-    password: "Password@123",
-    confirmPassword: "Password@123",
-    phone: "9876543212",
-    alternatePhone: "9876543213",
-    gstNumber: "27ABCDE1234F1Z5",
+    ownerName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    alternatePhone: "",
+    gstNumber: "",
 
     // Section 2: Operation Details
-    cuisineTypes: ["North Indian", "Fast Food"] as string[],
-    seatingCapacity: "60",
-    servingCapacity: "250",
+    cuisineTypes: [] as string[],
+    seatingCapacity: "",
+    servingCapacity: "",
 
     // Section 3: Contact & Legal
-    emergencyContactName: "Rakesh Mehta",
-    emergencyContactPhone: "9876500033",
-    bankAccountNumber: "123456789012",
-    bankIFSC: "HDFC0001234",
-    panNumber: "ABCDE1234F",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    bankAccountNumber: "",
+    bankIFSC: "",
+    panNumber: "",
 
     // Section 4: Additional Information
-    description: "Campus canteen serving hygienic meals and quick snacks.",
-    specialities: ["Veg Thali", "Masala Dosa", "Fresh Juice"] as string[],
+    description: "",
+    specialities: [] as string[],
     profilePicture: null as File | null,
   })
 

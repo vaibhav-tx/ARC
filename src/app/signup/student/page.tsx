@@ -56,36 +56,36 @@ export default function StudentSignupPage() {
 
   const [formData, setFormData] = useState({
     // Section 1: Personal Information
-    firstName: "Rahul",
-    lastName: "Sharma",
-    email: "rahul.sharma@student.edu",
-    password: "Password@123",
-    confirmPassword: "Password@123",
-    phone: "9876543210",
-    gender: "male",
-    dateOfBirth: "2004-07-15",
-    address: "Hostel Block A, Campus",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    gender: "",
+    dateOfBirth: "",
+    address: "",
 
     // Section 2: Academic Information
-    studentId: "STU2026001",
-    course: "Computer Science Engineering",
-    branch: "Computer Science",
-    year: "3rd Year",
-    semester: "6th Semester",
-    rollNumber: "CSE23045",
-    section: "CSE-A",
+    studentId: "",
+    course: "",
+    branch: "",
+    year: "",
+    semester: "",
+    rollNumber: "",
+    section: "",
 
     // Section 3: Emergency Contact
-    emergencyContactName: "Amit Sharma",
-    emergencyContactPhone: "9876500011",
-    emergencyContactRelation: "parent",
-    parentGuardianName: "Amit Sharma",
-    parentGuardianPhone: "9876500011",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    emergencyContactRelation: "",
+    parentGuardianName: "",
+    parentGuardianPhone: "",
 
     // Section 4: Additional Information
-    bio: "Focused on full-stack development and campus hackathons.",
-    interests: ["Programming", "AI", "Cricket"] as string[],
-    skills: ["JavaScript", "React", "Node.js"] as string[],
+    bio: "",
+    interests: [] as string[],
+    skills: [] as string[],
     profilePicture: null as File | null,
   })
 

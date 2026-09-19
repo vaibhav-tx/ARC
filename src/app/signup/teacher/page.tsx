@@ -44,33 +44,33 @@ export default function TeacherSignupPage() {
 
   const [formData, setFormData] = useState({
     // Section 1: Personal Information
-    firstName: "Priya",
-    lastName: "Verma",
-    email: "priya.verma@college.edu",
-    password: "Password@123",
-    confirmPassword: "Password@123",
-    phone: "9876543211",
-    gender: "female",
-    dateOfBirth: "1989-03-12",
-    address: "Faculty Housing, Campus",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    gender: "",
+    dateOfBirth: "",
+    address: "",
 
     // Section 2: Professional Information
-    employeeId: "EMP1024",
-    department: "Computer Science & Engineering",
-    designation: "Assistant Professor",
-    qualification: "M.Tech",
-    experience: "6",
-    subjects: ["Data Structures", "Database Systems"] as string[],
-    joiningDate: "2021-07-01",
+    employeeId: "",
+    department: "",
+    designation: "",
+    qualification: "",
+    experience: "",
+    subjects: [] as string[],
+    joiningDate: "",
 
     // Section 3: Emergency Contact
-    emergencyContactName: "Rohit Verma",
-    emergencyContactPhone: "9876500022",
-    emergencyContactRelation: "spouse",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    emergencyContactRelation: "",
 
     // Section 4: Additional Information
-    bio: "Assistant Professor with interests in databases and applied AI.",
-    specializations: ["Machine Learning", "Database Systems"] as string[],
+    bio: "",
+    specializations: [] as string[],
     profilePicture: null as File | null,
   })
 
