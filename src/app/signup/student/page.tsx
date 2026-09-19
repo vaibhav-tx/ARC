@@ -101,42 +101,6 @@ export default function StudentSignupPage() {
 
   const [newInterest, setNewInterest] = useState("Public Speaking")
   const [newSkill, setNewSkill] = useState("MongoDB")
-  const [demoFilled, setDemoFilled] = useState(false)
-
-  const fillDemoData = () => {
-    const ts = Date.now().toString().slice(-5)
-    setFormData({
-      firstName: "Arjun",
-      lastName: "Mehta",
-      email: `arjun.mehta${ts}@student.edu`,
-      password: "Demo@123456",
-      confirmPassword: "Demo@123456",
-      phone: "9876543210",
-      gender: "Male",
-      dateOfBirth: "2003-07-15",
-      address: "42 MG Road, Pune, Maharashtra, 411001",
-      studentId: `STU${ts}`,
-      course: "Computer Science Engineering",
-      branch: "Computer Science",
-      year: "3rd Year",
-      semester: "5th Semester",
-      rollNumber: `CS21${ts}`,
-      section: "A",
-      emergencyContactName: "Ramesh Mehta",
-      emergencyContactPhone: "9823456780",
-      emergencyContactRelation: "Father",
-      parentGuardianName: "Ramesh Mehta",
-      parentGuardianPhone: "9823456780",
-      bio: "Passionate CSE student interested in AI and full-stack development.",
-      interests: ["Hackathons", "Open Source", "Gaming"],
-      skills: ["React", "Node.js", "Python"],
-      profilePicture: null,
-      securityQuestion: "What city were you born in?",
-      securityAnswer: "Pune",
-    })
-    setDemoFilled(true)
-    setCurrentStep(1)
-  }
 
   // Load available classes on component mount
   useEffect(() => {
@@ -794,33 +758,9 @@ export default function StudentSignupPage() {
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-4xl"
       >
-        <div className="text-center mb-6">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Student Registration</h1>
-          <p className="text-zinc-400">Join your campus community in just 5 simple steps</p>
-        </div>
-
-        {/* ── Demo Fill Banner ── */}
-        <div className="mb-8 p-4 bg-gradient-to-r from-[#e78a53]/10 to-[#e78a53]/5 border border-[#e78a53]/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#e78a53]/20 rounded-xl">
-              <Zap className="h-5 w-5 text-[#e78a53]" />
-            </div>
-            <div>
-              <p className="text-white font-semibold text-sm">Evaluator / Demo Mode</p>
-              <p className="text-zinc-400 text-xs">Auto-fill all fields with realistic sample data, then click Next → Next → Submit.</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={fillDemoData}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 whitespace-nowrap ${
-              demoFilled
-                ? 'bg-green-500/20 border border-green-500/40 text-green-400'
-                : 'bg-[#e78a53] hover:bg-[#e78a53]/90 text-white shadow-lg shadow-[#e78a53]/20 hover:scale-105'
-            }`}
-          >
-            {demoFilled ? <><CheckCircle className="h-4 w-4" /> Demo Data Filled!</> : <><Zap className="h-4 w-4" /> Fill Demo Data</>}
-          </button>
+          <p className="text-zinc-400">Create your student profile in 5 simple steps</p>
         </div>
 
         <div className="flex justify-center mb-8">

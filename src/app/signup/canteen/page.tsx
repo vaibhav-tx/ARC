@@ -82,35 +82,6 @@ export default function CanteenSignupPage() {
 
   const [newCuisine, setNewCuisine] = useState("Bengali")
   const [newSpeciality, setNewSpeciality] = useState("Paneer Roll")
-  const [demoFilled, setDemoFilled] = useState(false)
-
-  const fillDemoData = () => {
-    const ts = Date.now().toString().slice(-5)
-    setFormData({
-      ownerName: "Sanjay Kumar",
-      email: `sanjay.canteen${ts}@campus.in`,
-      password: "Demo@123456",
-      confirmPassword: "Demo@123456",
-      phone: "9988776655",
-      alternatePhone: "9900112233",
-      gstNumber: `27AAPFU${ts}Z5`,
-      cuisineTypes: ["North Indian", "Fast Food", "Beverages"],
-      seatingCapacity: "60",
-      servingCapacity: "200",
-      emergencyContactName: "Meena Kumar",
-      emergencyContactPhone: "9988001122",
-      bankAccountNumber: "50200012345678",
-      bankIFSC: "HDFC0001234",
-      panNumber: "AAPFU1234C",
-      description: "Serving fresh, hygienic, and delicious meals to the campus community since 2018.",
-      specialities: ["Paneer Butter Masala", "Veg Biryani", "Masala Chai"],
-      profilePicture: null,
-      securityQuestion: "What city were you born in?",
-      securityAnswer: "Mumbai",
-    })
-    setDemoFilled(true)
-    setCurrentStep(1)
-  }
 
   const cuisineOptions = [
     "North Indian",
@@ -625,33 +596,9 @@ export default function CanteenSignupPage() {
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-4xl"
       >
-        <div className="text-center mb-6">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Canteen Registration</h1>
-          <p className="text-zinc-400">Join our campus food service network in just 5 simple steps</p>
-        </div>
-
-        {/* ── Demo Fill Banner ── */}
-        <div className="mb-8 p-4 bg-gradient-to-r from-[#e78a53]/10 to-[#e78a53]/5 border border-[#e78a53]/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#e78a53]/20 rounded-xl">
-              <Zap className="h-5 w-5 text-[#e78a53]" />
-            </div>
-            <div>
-              <p className="text-white font-semibold text-sm">Evaluator / Demo Mode</p>
-              <p className="text-zinc-400 text-xs">Auto-fill all fields with realistic sample data, then click Next → Next → Submit.</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={fillDemoData}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 whitespace-nowrap ${
-              demoFilled
-                ? 'bg-green-500/20 border border-green-500/40 text-green-400'
-                : 'bg-[#e78a53] hover:bg-[#e78a53]/90 text-white shadow-lg shadow-[#e78a53]/20 hover:scale-105'
-            }`}
-          >
-            {demoFilled ? <><CheckCircle className="h-4 w-4" /> Demo Data Filled!</> : <><Zap className="h-4 w-4" /> Fill Demo Data</>}
-          </button>
+          <p className="text-zinc-400">Create your canteen profile in 5 simple steps</p>
         </div>
 
         <div className="flex justify-center mb-8">

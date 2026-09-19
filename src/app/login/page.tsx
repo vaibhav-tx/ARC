@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -251,6 +251,20 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
   const [showForgotPassword, setShowForgotPassword] = useState(false)
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn")
+    const userRole = localStorage.getItem("userRole")
+    if (isLoggedIn === "true" && userRole) {
+      const urls: Record<string, string> = {
+        student: "/student/dashboard",
+        teacher: "/teacher/dashboard",
+        canteen: "/canteen/dashboard",
+      }
+      if (urls[userRole]) window.location.replace(urls[userRole])
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
