@@ -505,12 +505,7 @@ const ClassroomEnrollmentSchema = new Schema(
   { timestamps: true }
 );
 
-StudentSchema.index({ email: 1 }, { unique: true });
-StudentSchema.index({ studentId: 1 }, { unique: true });
-TeacherSchema.index({ email: 1 }, { unique: true });
-TeacherSchema.index({ employeeId: 1 }, { unique: true });
-CanteenSchema.index({ email: 1 }, { unique: true });
-CanteenSchema.index({ licenseNumber: 1 }, { unique: true, sparse: true });
+// (Note: unique indexes for email, studentId, employeeId, licenseNumber are defined in their schemas)
 
 // Indexes for better performance
 EventSchema.index({ startDate: 1, status: 1 });
@@ -670,7 +665,6 @@ const ExamHallTicketSchema = new Schema(
 );
 
 ExamHallTicketSchema.index({ studentId: 1, examDate: 1 });
-ExamHallTicketSchema.index({ hallTicketNumber: 1 });
 
 // ── Transcript Schema ──────────────────────────────────────────────────────
 const TranscriptSchema = new Schema(
