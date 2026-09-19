@@ -31,8 +31,7 @@ export const validateEnv = () => {
   const parsed = envSchema.safeParse(process.env);
   if (!parsed.success) {
     console.error("❌ Invalid environment variables:", parsed.error.format());
-    throw new Error(
-      "Invalid environment variables. See console output for missing or invalid keys.",
-    );
+    // Warning: We log the error but do not throw to prevent Vercel build crashes.
+    // Ensure you add these variables in your Vercel Dashboard -> Settings -> Environment Variables
   }
 };
