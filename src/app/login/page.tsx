@@ -3,22 +3,254 @@
 import type React from "react"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, ShieldQuestion, Lock, X, CheckCircle2, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
+// ── Forgot Password Modal ─────────────────────────────────────────────────────
+function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState<"email" | "answer" | "success">("email")
+  const [fpEmail, setFpEmail] = useState("")
+  const [fpRole, setFpRole] = useState<"student" | "teacher" | "canteen">("student")
+  const [securityQuestion, setSecurityQuestion] = useState("")
+  const [securityAnswer, setSecurityAnswer] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  const [fpError, setFpError] = useState("")
+  const [fpLoading, setFpLoading] = useState(false)
+
+  const handleGetQuestion = async () => {
+    if (!fpEmail.trim()) { setFpError("Please enter your email address."); return }
+    setFpError("")
+    setFpLoading(true)
+    try {
+      const res = await fetch("/api/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get-question", email: fpEmail, role: fpRole }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setFpError(data.error || "Failed to find account."); return }
+      setSecurityQuestion(data.securityQuestion)
+      setStep("answer")
+    } catch {
+      setFpError("Network error. Please try again.")
+    } finally {
+      setFpLoading(false)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!securityAnswer.trim()) { setFpError("Please answer the security question."); return }
+    if (newPassword.length < 8) { setFpError("Password must be at least 8 characters."); return }
+    if (newPassword !== confirmNewPassword) { setFpError("Passwords do not match."); return }
+    setFpError("")
+    setFpLoading(true)
+    try {
+      const res = await fetch("/api/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reset", email: fpEmail, role: fpRole, securityAnswer, newPassword }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setFpError(data.error || "Reset failed."); return }
+      setStep("success")
+      toast.success("Password reset successfully!")
+    } catch {
+      setFpError("Network error. Please try again.")
+    } finally {
+      setFpLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.25 }}
+        className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-2xl shadow-black/60"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {step === "email" && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-[#e78a53]/10 rounded-xl">
+                <ShieldQuestion className="h-6 w-6 text-[#e78a53]" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Forgot Password</h2>
+                <p className="text-zinc-400 text-sm">We'll verify via your security question</p>
+              </div>
+            </div>
+
+            {fpError && (
+              <Alert variant="destructive" className="bg-red-500/10 border-red-500/50 text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{fpError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Account Type</Label>
+              <Select value={fpRole} onValueChange={(v) => setFpRole(v as any)}>
+                <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-zinc-700">
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="teacher">Teacher</SelectItem>
+                  <SelectItem value="canteen">Canteen Operator</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Email Address</Label>
+              <Input
+                type="email"
+                value={fpEmail}
+                onChange={(e) => setFpEmail(e.target.value)}
+                placeholder="Enter your registered email"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500"
+                onKeyDown={(e) => e.key === "Enter" && handleGetQuestion()}
+              />
+            </div>
+
+            <Button
+              onClick={handleGetQuestion}
+              disabled={fpLoading}
+              className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-white font-semibold py-3 rounded-xl"
+            >
+              {fpLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {fpLoading ? "Looking up account..." : "Continue →"}
+            </Button>
+          </div>
+        )}
+
+        {step === "answer" && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-[#e78a53]/10 rounded-xl">
+                <Lock className="h-6 w-6 text-[#e78a53]" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Security Verification</h2>
+                <p className="text-zinc-400 text-sm">Answer your security question to continue</p>
+              </div>
+            </div>
+
+            {fpError && (
+              <Alert variant="destructive" className="bg-red-500/10 border-red-500/50 text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{fpError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="p-4 bg-zinc-800/60 border border-zinc-700 rounded-xl">
+              <p className="text-zinc-400 text-xs uppercase tracking-wider mb-1">Security Question</p>
+              <p className="text-white font-medium">{securityQuestion}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Your Answer</Label>
+              <Input
+                type="text"
+                value={securityAnswer}
+                onChange={(e) => setSecurityAnswer(e.target.value)}
+                placeholder="Enter your answer"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">New Password</Label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Minimum 8 characters"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Confirm New Password</Label>
+              <Input
+                type="password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500"
+                onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => { setStep("email"); setFpError("") }}
+                className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              >
+                ← Back
+              </Button>
+              <Button
+                onClick={handleResetPassword}
+                disabled={fpLoading}
+                className="flex-1 bg-[#e78a53] hover:bg-[#e78a53]/90 text-white font-semibold rounded-xl"
+              >
+                {fpLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {fpLoading ? "Resetting..." : "Reset Password"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "success" && (
+          <div className="text-center space-y-5 py-4">
+            <div className="flex justify-center">
+              <div className="p-4 bg-green-500/10 rounded-full">
+                <CheckCircle2 className="h-12 w-12 text-green-400" />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white mb-2">Password Reset!</h2>
+              <p className="text-zinc-400 text-sm">Your password has been updated. You can now sign in with your new password.</p>
+            </div>
+            <Button
+              onClick={onClose}
+              className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-white font-semibold py-3 rounded-xl"
+            >
+              Go to Sign In
+            </Button>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  )
+}
+
+// ── Main Login Page ───────────────────────────────────────────────────────────
 export default function LoginPage() {
-  const [email, setEmail] = useState("rahul.sharma@student.edu")
-  const [password, setPassword] = useState("Password@123")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [role, setRole] = useState<'student' | 'teacher' | 'canteen'>('student')
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,6 +286,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <AnimatePresence>
+        {showForgotPassword && (
+          <ForgotPasswordModal onClose={() => setShowForgotPassword(false)} />
+        )}
+      </AnimatePresence>
+
       <Link
         href="/"
         className="absolute top-6 left-6 z-20 text-zinc-400 hover:text-[#e78a53] transition-colors duration-200 flex items-center space-x-2"
@@ -101,51 +339,41 @@ export default function LoginPage() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">
-                Email
-              </Label>
+              <Label className="text-zinc-300">Email Address</Label>
               <Input
-                id="email"
                 type="email"
-                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
+                placeholder="Enter your email"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53]/50 focus:ring-[#e78a53]/20"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">
-                Password
-              </Label>
+              <Label className="text-zinc-300">Password</Label>
               <Input
-                id="password"
                 type="password"
-                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
+                placeholder="Enter your password"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53]/50 focus:ring-[#e78a53]/20"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role" className="text-white">Role</Label>
-              <Select value={role} onValueChange={(value) => setRole(value as any)}>
-                <SelectTrigger
-                  id="role"
-                  className="w-full bg-zinc-800/50 border-zinc-700 text-white text-left focus:border-[#e78a53] focus:ring-[#e78a53]/20"
-                  aria-label="Role"
-                >
+              <Label className="text-zinc-300">Account Type</Label>
+              <Select value={role} onValueChange={(v) => setRole(v as any)}>
+                <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white">
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectItem value="student" className="text-white">Student</SelectItem>
-                  <SelectItem value="teacher" className="text-white">Teacher</SelectItem>
-                  <SelectItem value="canteen" className="text-white">Canteen Manager</SelectItem>
+                <SelectContent className="bg-zinc-900 border-zinc-700">
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="teacher">Teacher</SelectItem>
+                  <SelectItem value="canteen">Canteen Operator</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -158,10 +386,10 @@ export default function LoginPage() {
                 />
                 <span className="text-zinc-300">Remember me</span>
               </label>
-              <button 
+              <button
                 type="button"
-                onClick={() => toast.info("Password recovery is disabled for the hackathon demo.")}
-                className="text-sm text-[#e78a53] hover:text-[#e78a53]/80"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-sm text-[#e78a53] hover:text-[#e78a53]/80 hover:underline transition-colors"
               >
                 Forgot password?
               </button>

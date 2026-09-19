@@ -80,6 +80,8 @@ const StudentSchema = new Schema(
     interests: [{ type: String }],
     skills: [{ type: String }],
     avatarInitials: { type: String },
+    securityQuestion: { type: String },
+    securityAnswer: { type: String },
   },
   { timestamps: true }
 );
@@ -107,6 +109,8 @@ const TeacherSchema = new Schema(
     bio: { type: String },
     specializations: [{ type: String }],
     avatarInitials: { type: String },
+    securityQuestion: { type: String },
+    securityAnswer: { type: String },
   },
   { timestamps: true }
 );
@@ -137,6 +141,8 @@ const CanteenSchema = new Schema(
     description: { type: String },
     specialities: [{ type: String }],
     avatarInitials: { type: String },
+    securityQuestion: { type: String },
+    securityAnswer: { type: String },
   },
   { timestamps: true }
 );

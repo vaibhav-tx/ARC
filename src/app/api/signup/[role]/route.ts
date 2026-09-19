@@ -32,6 +32,8 @@ const requiredFields: Record<string, string[]> = {
     "emergencyContactRelation",
     "parentGuardianName",
     "parentGuardianPhone",
+    "securityQuestion",
+    "securityAnswer",
   ],
   teacher: [
     "firstName",
@@ -51,6 +53,8 @@ const requiredFields: Record<string, string[]> = {
     "emergencyContactName",
     "emergencyContactPhone",
     "emergencyContactRelation",
+    "securityQuestion",
+    "securityAnswer",
   ],
   canteen: [
     "ownerName",
@@ -64,6 +68,8 @@ const requiredFields: Record<string, string[]> = {
     "bankAccountNumber",
     "bankIFSC",
     "panNumber",
+    "securityQuestion",
+    "securityAnswer",
   ],
 };
 
@@ -92,6 +98,8 @@ const allowedFields: Record<string, string[]> = {
     "bio",
     "interests",
     "skills",
+    "securityQuestion",
+    "securityAnswer",
   ],
   teacher: [
     "firstName",
@@ -114,6 +122,8 @@ const allowedFields: Record<string, string[]> = {
     "emergencyContactRelation",
     "bio",
     "specializations",
+    "securityQuestion",
+    "securityAnswer",
   ],
   canteen: [
     "ownerName",
@@ -133,6 +143,8 @@ const allowedFields: Record<string, string[]> = {
     "panNumber",
     "description",
     "specialities",
+    "securityQuestion",
+    "securityAnswer",
   ],
 };
 

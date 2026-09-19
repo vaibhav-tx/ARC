@@ -98,6 +98,7 @@ export default function StudentDashboard() {
 
   // Students have firstName/lastName from DB; admin has username='ADMIN1'
   // Never show admin username on student dashboard
+  const isDummyUser = currentUser?.email === "amit.kumar@college.edu" || false;
   const name = (() => {
     if (!currentUser) return "Rohit Sharma"
     if (currentUser.role === "admin") return "Rohit Sharma"

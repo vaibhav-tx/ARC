@@ -34,7 +34,8 @@ import {
   UserCheck,
   Award,
   Briefcase,
-  AlertCircle
+  AlertCircle,
+  Zap
 } from "lucide-react"
 
 export default function TeacherSignupPage() {
@@ -43,7 +44,8 @@ export default function TeacherSignupPage() {
   const [errorMsg, setErrorMsg] = useState("")
   const requiredTeacherFields = [
     'firstName', 'lastName', 'email', 'password', 'confirmPassword', 'phone', 'gender', 'dateOfBirth', 'address',
-    'employeeId', 'department', 'designation', 'qualification', 'experience', 'joiningDate', 'emergencyContactName', 'emergencyContactPhone', 'emergencyContactRelation'
+    'employeeId', 'department', 'designation', 'qualification', 'experience', 'joiningDate', 'emergencyContactName', 'emergencyContactPhone', 'emergencyContactRelation',
+    'securityQuestion', 'securityAnswer',
   ]
 
   const [formData, setFormData] = useState({
@@ -76,10 +78,47 @@ export default function TeacherSignupPage() {
     bio: "",
     specializations: [] as string[],
     profilePicture: null as File | null,
+
+    // Section 5: Account Security
+    securityQuestion: "",
+    securityAnswer: "",
   })
 
   const [newSubject, setNewSubject] = useState("Operating Systems")
   const [newSpecialization, setNewSpecialization] = useState("Cloud Computing")
+  const [demoFilled, setDemoFilled] = useState(false)
+
+  const fillDemoData = () => {
+    const ts = Date.now().toString().slice(-5)
+    setFormData({
+      firstName: "Priya",
+      lastName: "Verma",
+      email: `priya.verma${ts}@college.edu`,
+      password: "Demo@123456",
+      confirmPassword: "Demo@123456",
+      phone: "9845012345",
+      gender: "Female",
+      dateOfBirth: "1988-03-22",
+      address: "15 Shivaji Nagar, Bengaluru, Karnataka, 560001",
+      employeeId: `EMP${ts}`,
+      department: "Computer Science & Engineering",
+      designation: "Assistant Professor",
+      qualification: "M.Tech Computer Science",
+      experience: "7 years",
+      subjects: ["Data Structures", "Algorithms", "Machine Learning"],
+      joiningDate: "2019-08-01",
+      emergencyContactName: "Deepak Verma",
+      emergencyContactPhone: "9876501234",
+      emergencyContactRelation: "Spouse",
+      bio: "Experienced educator passionate about AI and algorithms.",
+      specializations: ["Machine Learning", "Data Science"],
+      profilePicture: null,
+      securityQuestion: "What city were you born in?",
+      securityAnswer: "Delhi",
+    })
+    setDemoFilled(true)
+    setCurrentStep(1)
+  }
 
   const departments = [
     "Computer Science & Engineering",
@@ -158,7 +197,7 @@ export default function TeacherSignupPage() {
   }
 
   const nextStep = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1)
+    if (currentStep < 5) setCurrentStep(currentStep + 1)
   }
 
   const prevStep = () => {
@@ -585,6 +624,66 @@ export default function TeacherSignupPage() {
 
       default:
         return null
+      case 5:
+        return (
+          <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div className="p-2 bg-[#e78a53]/10 rounded-lg">
+                  <UserCheck className="h-6 w-6 text-[#e78a53]" />
+                </div>
+                Account Security
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="p-4 bg-[#e78a53]/5 border border-[#e78a53]/20 rounded-xl">
+                <p className="text-sm text-zinc-300 leading-relaxed">
+                  <span className="font-semibold text-[#e78a53]">Why set a security question?</span>
+                  <br />
+                  If you ever forget your password, we'll ask you this question to verify your identity and let you reset it.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-foreground flex items-center gap-2">
+                  <Hash className="h-4 w-4 text-[#e78a53]" />
+                  Security Question
+                </Label>
+                <Select
+                  value={formData.securityQuestion}
+                  onValueChange={(v) => handleInputChange('securityQuestion', v)}
+                >
+                  <SelectTrigger className="bg-background/50 border-border/50">
+                    <SelectValue placeholder="Choose a security question" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="What was the name of your first pet?">What was the name of your first pet?</SelectItem>
+                    <SelectItem value="What is your mother's maiden name?">What is your mother's maiden name?</SelectItem>
+                    <SelectItem value="What was the name of your primary school?">What was the name of your primary school?</SelectItem>
+                    <SelectItem value="What city were you born in?">What city were you born in?</SelectItem>
+                    <SelectItem value="What is your oldest sibling's middle name?">What is your oldest sibling's middle name?</SelectItem>
+                    <SelectItem value="What street did you grow up on?">What street did you grow up on?</SelectItem>
+                    <SelectItem value="What was the make of your first car?">What was the make of your first car?</SelectItem>
+                    <SelectItem value="What was your childhood nickname?">What was your childhood nickname?</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-foreground flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-[#e78a53]" />
+                  Your Answer
+                </Label>
+                <Input
+                  type="text"
+                  value={formData.securityAnswer}
+                  onChange={(e) => handleInputChange('securityAnswer', e.target.value)}
+                  placeholder="Enter your answer (case-insensitive)"
+                  className="bg-background/50 border-border/50"
+                />
+                <p className="text-xs text-zinc-500">Your answer is not case-sensitive. Keep it memorable but hard to guess.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )
     }
   }
 
@@ -608,14 +707,38 @@ export default function TeacherSignupPage() {
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-4xl"
       >
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-4xl font-bold text-white mb-2">Teacher Registration</h1>
-          <p className="text-zinc-400">Join our faculty community in just 4 simple steps</p>
+          <p className="text-zinc-400">Join our faculty community in just 5 simple steps</p>
+        </div>
+
+        {/* ── Demo Fill Banner ── */}
+        <div className="mb-8 p-4 bg-gradient-to-r from-[#e78a53]/10 to-[#e78a53]/5 border border-[#e78a53]/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-[#e78a53]/20 rounded-xl">
+              <Zap className="h-5 w-5 text-[#e78a53]" />
+            </div>
+            <div>
+              <p className="text-white font-semibold text-sm">Evaluator / Demo Mode</p>
+              <p className="text-zinc-400 text-xs">Auto-fill all fields with realistic sample data, then click Next → Next → Submit.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={fillDemoData}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 whitespace-nowrap ${
+              demoFilled
+                ? 'bg-green-500/20 border border-green-500/40 text-green-400'
+                : 'bg-[#e78a53] hover:bg-[#e78a53]/90 text-white shadow-lg shadow-[#e78a53]/20 hover:scale-105'
+            }`}
+          >
+            {demoFilled ? <><CheckCircle className="h-4 w-4" /> Demo Data Filled!</> : <><Zap className="h-4 w-4" /> Fill Demo Data</>}
+          </button>
         </div>
 
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-4">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3, 4, 5].map((step) => (
               <div key={step} className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${currentStep >= step
                   ? 'bg-[#e78a53] border-[#e78a53] text-white'
@@ -623,7 +746,7 @@ export default function TeacherSignupPage() {
                   }`}>
                   {currentStep > step ? <CheckCircle className="h-5 w-5" /> : step}
                 </div>
-                {step < 4 && (
+                {step < 5 && (
                   <div className={`w-12 h-0.5 mx-2 transition-all duration-300 ${currentStep > step ? 'bg-[#e78a53]' : 'bg-zinc-600'
                     }`} />
                 )}
@@ -661,7 +784,7 @@ export default function TeacherSignupPage() {
             Previous
           </Button>
 
-          {currentStep < 4 ? (
+          {currentStep < 5 ? (
             <Button
               onClick={nextStep}
               className="bg-[#e78a53] hover:bg-[#e78a53]/90 flex items-center gap-2"
