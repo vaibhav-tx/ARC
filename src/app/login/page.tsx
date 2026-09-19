@@ -158,9 +158,13 @@ export default function LoginPage() {
                 />
                 <span className="text-zinc-300">Remember me</span>
               </label>
-              <Link href="#" className="text-sm text-[#e78a53] hover:text-[#e78a53]/80">
+              <button 
+                type="button"
+                onClick={() => toast.info("Password recovery is disabled for the hackathon demo.")}
+                className="text-sm text-[#e78a53] hover:text-[#e78a53]/80"
+              >
                 Forgot password?
-              </Link>
+              </button>
             </div>
 
             <Button
@@ -202,7 +206,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => alert("OAuth login is not configured for this hackathon demo. Please use the email/password sign-in above.")}
+              onClick={() => toast.info("OAuth login is not configured for this hackathon demo. Please use the email/password sign-in above.")}
               className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all duration-200 group"
             >
               <svg
@@ -231,7 +235,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => alert("OAuth login is not configured for this hackathon demo. Please use the email/password sign-in above.")}
+              onClick={() => toast.info("OAuth login is not configured for this hackathon demo. Please use the email/password sign-in above.")}
               className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all duration-200 group"
             >
               <svg

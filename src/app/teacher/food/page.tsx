@@ -171,7 +171,7 @@ export default function TeacherFoodPage() {
     if (!currentUser?.id) return
     
     try {
-      const response = await fetch(`/api/orders/user?userId=${currentUser.id}&userType=teacher`)
+      const response = await fetch(`/api/orders?customerId=${currentUser.id}`)
       const result = await response.json()
       
       if (response.ok) {

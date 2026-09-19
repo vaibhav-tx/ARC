@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 import { 
   Briefcase, 
   Plus, 
@@ -272,7 +273,7 @@ export default function AdminInternshipsPage() {
 
       await loadInternships()
       setModalOpen(false)
-      alert(editingInternship ? 'Internship updated successfully' : 'Internship created successfully')
+      toast.success(editingInternship ? 'Internship updated successfully' : 'Internship created successfully')
     } catch (error: any) {
       setError(error.message || 'Failed to save internship')
     } finally {
@@ -298,7 +299,7 @@ export default function AdminInternshipsPage() {
       }
 
       await loadInternships()
-      alert('Internship deleted successfully')
+      toast.success('Internship deleted successfully')
     } catch (error: any) {
       setError(error.message || 'Failed to delete internship')
     } finally {
@@ -370,7 +371,7 @@ export default function AdminInternshipsPage() {
         await viewApplications(selectedApplicationInternship)
       }
       
-      alert(`Application ${status} successfully`)
+      toast.success(`Application ${status} successfully`)
     } catch (error: any) {
       setError(error.message || 'Failed to update application')
     }

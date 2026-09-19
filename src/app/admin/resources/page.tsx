@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 import { 
   BookOpen,
   Laptop,
@@ -340,7 +341,7 @@ export default function AdminResourcesPage() {
 
       await loadResources()
       setModalOpen(false)
-      alert(editingResource ? 'Resource updated successfully' : 'Resource created successfully')
+      toast.success(editingResource ? 'Resource updated successfully' : 'Resource created successfully')
     } catch (error: any) {
       setError(error.message || 'Failed to save resource')
     } finally {
@@ -366,7 +367,7 @@ export default function AdminResourcesPage() {
       }
 
       await loadResources()
-      alert('Resource deleted successfully')
+      toast.success('Resource deleted successfully')
     } catch (error: any) {
       setError(error.message || 'Failed to delete resource')
     } finally {

@@ -201,7 +201,7 @@ export default function TeacherDashboardPage() {
   const fetchFoodOrders = async () => {
     try {
       const response = await fetch(
-        `/api/orders/user?userId=${currentUser._id || currentUser.id}&userType=teacher&limit=5`,
+        `/api/orders?customerId=${currentUser._id || currentUser.id}&limit=5`,
       );
       if (response.ok) {
         const data = await response.json();
@@ -219,7 +219,7 @@ export default function TeacherDashboardPage() {
       // For now, use mock data - replace with actual API call when available
       setAttendanceStats({
         totalClasses: classrooms.length,
-        classesToday: isDummyUser ? 3 : 0,
+        classesToday: isDummyUser ? 3 : (classrooms.length > 0 ? 2 : 0),
         studentsPresent: isDummyUser ? 85 : 0,
         attendanceRate: isDummyUser ? 92 : 0,
       });

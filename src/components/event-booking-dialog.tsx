@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
 import {
   IndianRupee,
   CreditCard,
@@ -127,13 +128,13 @@ export function EventBookingDialog({ isOpen, onClose, event, onBookingSuccess }:
           if (verifyResponse.ok) {
             onBookingSuccess(verifyResult.data)
             onClose()
-            alert('Payment successful! Your event registration is confirmed.')
+            toast.success('Payment successful! Your event registration is confirmed.')
           } else {
-            alert('Payment verification failed: ' + verifyResult.error)
+            toast.error('Payment verification failed: ' + verifyResult.error)
           }
         } catch (error) {
           console.error('Payment verification error:', error)
-          alert('Payment verification failed. Please contact support.')
+          toast.error('Payment verification failed. Please contact support.')
         } finally {
           setIsLoading(false)
         }
@@ -159,17 +160,17 @@ export function EventBookingDialog({ isOpen, onClose, event, onBookingSuccess }:
 
   const handleBookEvent = async () => {
     if (!currentUser) {
-      alert('Please login to register for events')
+      toast.error('Please login to register for events')
       return
     }
 
     if (!event) {
-      alert('Event information not available')
+      toast.error('Event information not available')
       return
     }
 
     if (!studentInfo.name || !studentInfo.email) {
-      alert('Please fill in all required fields')
+      toast.error('Please fill in all required fields')
       return
     }
 
@@ -197,7 +198,7 @@ export function EventBookingDialog({ isOpen, onClose, event, onBookingSuccess }:
       const result = await response.json()
 
       if (!response.ok) {
-        alert(result.error || 'Failed to create booking')
+        toast.error(result.error || 'Failed to create booking')
         setIsLoading(false)
         return
       }
@@ -205,7 +206,7 @@ export function EventBookingDialog({ isOpen, onClose, event, onBookingSuccess }:
       if (paymentMethod === 'online' && event.fee > 0) {
         // Process online payment
         if (!window.Razorpay) {
-          alert('Payment gateway not loaded. Please try again.')
+          toast.error('Payment gateway not loaded. Please try again.')
           setIsLoading(false)
           return
         }
@@ -215,12 +216,12 @@ export function EventBookingDialog({ isOpen, onClose, event, onBookingSuccess }:
         onBookingSuccess(result.booking)
         onClose()
         setIsLoading(false)
-        alert('Registration successful!')
+        toast.success('Registration successful!')
       }
 
     } catch (error) {
       console.error('Booking error:', error)
-      alert('Failed to create booking. Please try again.')
+      toast.error('Failed to create booking. Please try again.')
       setIsLoading(false)
     }
   }

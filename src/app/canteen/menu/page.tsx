@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { CanteenSidebar } from "@/components/canteen-sidebar"
 import { UserMenu } from "@/components/user-menu"
+import { toast } from "sonner"
 import {
   Plus,
   Edit,
@@ -35,7 +36,6 @@ import {
   Leaf,
   Flame
 } from "lucide-react"
-import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface MenuItem {
@@ -265,12 +265,14 @@ export default function CanteenMenuPage() {
         await fetchMenuItems()
         setIsDialogOpen(false)
         resetForm()
+        toast.success(editingItem ? 'Menu item updated' : 'Menu item created')
       } else {
         const result = await response.json()
-        alert('Error saving menu item: ' + result.error)
+        toast.error('Error saving menu item: ' + result.error)
       }
     } catch (error) {
       console.error('Error saving menu item:', error)
+      toast.error('Failed to save menu item')
     } finally {
       setIsLoading(false)
     }
