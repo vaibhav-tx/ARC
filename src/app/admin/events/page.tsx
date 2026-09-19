@@ -32,6 +32,7 @@ import {
   Download,
   CreditCard
 } from "lucide-react"
+import { toast } from "sonner"
 import { redirectIfNotAuthenticatedAdmin } from '@/lib/auth-middleware'
 
 interface Event {
@@ -222,7 +223,7 @@ export default function AdminEventsPage() {
 
   const generateEventReport = (event: Event) => {
     if (!event.participants || event.participants.length === 0) {
-      alert('No participants data available for this event.')
+      toast.error('No participants data available for this event.')
       return
     }
 
@@ -394,7 +395,7 @@ export default function AdminEventsPage() {
 
       await loadEvents()
       setModalOpen(false)
-      alert(editingEvent ? 'Event updated successfully' : 'Event created successfully')
+      toast.success(editingEvent ? 'Event updated successfully' : 'Event created successfully')
     } catch (error: any) {
       setError(error.message || 'Failed to save event')
     } finally {
@@ -420,7 +421,7 @@ export default function AdminEventsPage() {
       }
 
       await loadEvents()
-      alert('Event deleted successfully')
+      toast.success('Event deleted successfully')
     } catch (error: any) {
       setError(error.message || 'Failed to delete event')
     } finally {

@@ -168,7 +168,8 @@ export default function CanteenSignupPage() {
         setIsLoading(false)
         return
       }
-      window.location.href = '/canteen/dashboard'
+      alert('Account created successfully! Please sign in with your credentials.')
+      window.location.href = '/login'
     } catch (e: any) {
       alert('Network error')
       setIsLoading(false)

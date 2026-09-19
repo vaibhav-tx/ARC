@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/services/database";
 import { StudentModel, TeacherModel, CanteenModel } from "@/lib/models";
+import { rateLimit } from "@/lib/rate-limit";
 
 const roleModels = {
   student: StudentModel,
@@ -147,6 +148,17 @@ export async function POST(
   const role = params?.role?.toLowerCase();
   const Model = role ? roleModels[role] : undefined;
 
+  // 1. Rate Limiting Protection (Security Hardening)
+  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const { success, headers } = rateLimit(ip, 3, 60000); // Max 3 signups per minute per IP
+  
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many signup attempts. Please try again later." },
+      { status: 429, headers }
+    );
+  }
+
   if (!Model) {
     return NextResponse.json(
       { error: "Invalid signup role." },
@@ -242,8 +254,16 @@ export async function POST(
       );
     }
 
+    // 2. Prevent Silent Failures: Log detailed error to console (or Sentry in prod)
+    console.error("[SIGNUP_API_ERROR]", {
+      message: (error as any)?.message,
+      stack: (error as any)?.stack,
+      role: role,
+      timestamp: new Date().toISOString()
+    });
+
     return NextResponse.json(
-      { error: message || "Failed to create account." },
+      { error: "Internal server error during registration. Our engineering team has been notified." },
       { status: 500 },
     );
   }

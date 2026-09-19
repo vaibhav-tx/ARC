@@ -13,6 +13,13 @@ export function TeacherSidebar({ className = "" }: SidebarProps) {
     const pathname = usePathname()
     const isActive = (path: string) => pathname === path
 
+    const handleLogout = () => {
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("currentUser");
+        window.location.href = "/login";
+    };
+
     const navItems = [
         { href: "/teacher/dashboard", icon: Users, label: "Dashboard" },
         // { href: "/teacher/timetable", icon: Calendar, label: "Timetable" },
@@ -59,7 +66,7 @@ export function TeacherSidebar({ className = "" }: SidebarProps) {
                     <Button variant="ghost" size="icon">
                         <Settings className="h-5 w-5 text-zinc-400" />
                     </Button>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={handleLogout}>
                         <LogOut className="h-5 w-5 text-zinc-400" />
                     </Button>
                 </div>

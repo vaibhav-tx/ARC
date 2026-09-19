@@ -215,7 +215,8 @@ export default function StudentSignupPage() {
         setIsLoading(false)
         return
       }
-      window.location.href = '/student/dashboard'
+      alert('Account created successfully! Please sign in with your credentials.')
+      window.location.href = '/login'
     } catch (e: any) {
       alert('Network error')
       setIsLoading(false)

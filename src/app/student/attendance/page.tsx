@@ -97,8 +97,6 @@ const getEnrollmentClassroom = (enrollment: Enrollment) => {
   }
   return null;
 };
-
-// ── Mock data fallback ──────────────────────────────────────────────────────
 const mockEnrollments = [
   {
     _id: "e1",
@@ -132,128 +130,6 @@ const mockEnrollments = [
   },
 ];
 
-const mkDate = (daysAgo: number) =>
-  new Date(Date.now() - daysAgo * 86400000).toISOString();
-
-const mockAttendance: AttendanceRecord[] = [
-  {
-    _id: "a1",
-    date: mkDate(1),
-    status: "present",
-    subjectName: "Data Structures & Algorithms",
-    timeSlot: "09:00–10:30",
-    remarks: "",
-    createdAt: mkDate(1),
-  },
-  {
-    _id: "a2",
-    date: mkDate(3),
-    status: "present",
-    subjectName: "Database Management Systems",
-    timeSlot: "10:00–11:30",
-    remarks: "",
-    createdAt: mkDate(3),
-  },
-  {
-    _id: "a3",
-    date: mkDate(4),
-    status: "late",
-    subjectName: "Data Structures & Algorithms",
-    timeSlot: "09:00–10:30",
-    remarks: "Bus delay",
-    createdAt: mkDate(4),
-  },
-  {
-    _id: "a4",
-    date: mkDate(6),
-    status: "present",
-    subjectName: "Data Structures & Algorithms",
-    timeSlot: "09:00–10:30",
-    remarks: "",
-    createdAt: mkDate(6),
-  },
-  {
-    _id: "a5",
-    date: mkDate(8),
-    status: "absent",
-    subjectName: "Database Management Systems",
-    timeSlot: "10:00–11:30",
-    remarks: "Sick",
-    createdAt: mkDate(8),
-  },
-  {
-    _id: "a6",
-    date: mkDate(10),
-    status: "present",
-    subjectName: "Data Structures & Algorithms",
-    timeSlot: "09:00–10:30",
-    remarks: "",
-    createdAt: mkDate(10),
-  },
-  {
-    _id: "a7",
-    date: mkDate(11),
-    status: "present",
-    subjectName: "Operating Systems",
-    timeSlot: "11:00–12:30",
-    remarks: "",
-    createdAt: mkDate(11),
-  },
-  {
-    _id: "a8",
-    date: mkDate(13),
-    status: "present",
-    subjectName: "Data Structures & Algorithms",
-    timeSlot: "09:00–10:30",
-    remarks: "",
-    createdAt: mkDate(13),
-  },
-  {
-    _id: "a9",
-    date: mkDate(15),
-    status: "absent",
-    subjectName: "Data Structures & Algorithms",
-    timeSlot: "09:00–10:30",
-    remarks: "",
-    createdAt: mkDate(15),
-  },
-  {
-    _id: "a10",
-    date: mkDate(17),
-    status: "present",
-    subjectName: "Operating Systems",
-    timeSlot: "11:00–12:30",
-    remarks: "",
-    createdAt: mkDate(17),
-  },
-  {
-    _id: "a11",
-    date: mkDate(18),
-    status: "present",
-    subjectName: "Database Management Systems",
-    timeSlot: "10:00–11:30",
-    remarks: "",
-    createdAt: mkDate(18),
-  },
-  {
-    _id: "a12",
-    date: mkDate(20),
-    status: "late",
-    subjectName: "Data Structures & Algorithms",
-    timeSlot: "09:00–10:30",
-    remarks: "Traffic",
-    createdAt: mkDate(20),
-  },
-];
-
-const mockStats: Statistics = {
-  totalClasses: 12,
-  presentCount: 8,
-  lateCount: 2,
-  absentCount: 2,
-  attendancePercentage: 83,
-};
-
 export default function StudentAttendancePage() {
   const searchParams = useSearchParams();
   const classroomParam = searchParams.get("classroom");
@@ -271,6 +147,7 @@ export default function StudentAttendancePage() {
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
@@ -295,13 +172,7 @@ export default function StudentAttendancePage() {
     if (!currentUser) return;
 
     setLoading(true);
-
-    console.log("=== FRONTEND ATTENDANCE DEBUG ===");
-    console.log("Current user:", currentUser._id || currentUser.id);
-    console.log("Selected classroom:", classroomId);
-    console.log("Start date:", startDate);
-    console.log("End date:", endDate);
-    console.log("Date filters applied:", !!(startDate || endDate));
+    setError(null);
 
     try {
       const params = new URLSearchParams({
@@ -312,39 +183,28 @@ export default function StudentAttendancePage() {
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
 
-      console.log("API URL:", `/api/student/attendance?${params}`);
       const response = await fetch(`/api/student/attendance?${params}`);
 
       if (response.ok) {
         const data = await response.json();
-        console.log("API Response data:", data);
-        console.log(
-          "Attendance records received:",
-          data.attendanceRecords?.length || 0,
-        );
-        console.log("Statistics:", data.statistics);
-        console.log("=== END FRONTEND DEBUG ===");
-
-        setAttendanceRecords(
-          data.attendanceRecords?.length
-            ? data.attendanceRecords
-            : mockAttendance,
-        );
-        setEnrollments(
-          data.enrollments?.length ? data.enrollments : mockEnrollments,
-        );
-        setStatistics(data.statistics || mockStats);
+        setAttendanceRecords(data.attendanceRecords || []);
+        setEnrollments(data.enrollments || []);
+        setStatistics(data.statistics || null);
         setClassroom(data.classroom || null);
       } else {
-        setAttendanceRecords(mockAttendance);
-        setEnrollments(mockEnrollments);
-        setStatistics(mockStats);
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch attendance");
       }
-    } catch (error) {
-      console.error("Error fetching attendance:", error);
-      setAttendanceRecords(mockAttendance);
-      setEnrollments(mockEnrollments);
-      setStatistics(mockStats);
+    } catch (error: any) {
+      console.error("[FETCH_ATTENDANCE_ERROR]", error);
+      setError(error.message || "An unexpected error occurred.");
+      toast({
+         title: "Error",
+         description: "Failed to load attendance data",
+         variant: "destructive"
+      });
+      setAttendanceRecords([]);
+      setStatistics(null);
     } finally {
       setLoading(false);
       setInitialLoading(false);
@@ -418,6 +278,13 @@ export default function StudentAttendancePage() {
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e78a53] mx-auto"></div>
               <p className="text-zinc-400 mt-2">Loading...</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-12 bg-red-500/5 border border-red-500/20 rounded-xl">
+               <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
+               <h3 className="text-xl font-semibold text-red-400 mb-2">Failed to load data</h3>
+               <p className="text-zinc-400">{error}</p>
+               <Button onClick={() => fetchAttendanceData(selectedClassroom)} variant="outline" className="mt-6 border-zinc-700 text-zinc-300 hover:text-white">Retry Connection</Button>
             </div>
           ) : (
             <>

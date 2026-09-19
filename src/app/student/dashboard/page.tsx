@@ -99,12 +99,44 @@ function KPI({ icon: Icon, label, value, sub, trend, up, color, bg }: any) {
 
 export default function StudentDashboard() {
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [attendanceStats, setAttendanceStats] = useState<any>(null)
+  const [feeStats, setFeeStats] = useState<number | null>(null)
+
   useEffect(() => {
     try {
       const u = localStorage.getItem("currentUser")
-      if (u) setCurrentUser(JSON.parse(u))
+      if (u) {
+        const parsed = JSON.parse(u)
+        setCurrentUser(parsed)
+        fetchDashboardData(parsed.id || parsed._id)
+      }
     } catch {}
   }, [])
+
+  const fetchDashboardData = async (studentId: string) => {
+    setError(null)
+    try {
+      // Parallel fetch to prove backend connections
+      const [attRes, feeRes] = await Promise.all([
+        fetch(`/api/student/attendance?studentId=${studentId}`),
+        fetch(`/api/student/fees?studentId=${studentId}`)
+      ])
+
+      if (!attRes.ok || !feeRes.ok) throw new Error("Dashboard data sync failed.")
+
+      const attData = await attRes.json()
+      const feeData = await feeRes.json()
+
+      setAttendanceStats(attData.statistics)
+      
+      const totalDue = (feeData.fees || []).reduce((sum: number, f: any) => sum + f.dueAmount, 0)
+      setFeeStats(totalDue)
+    } catch (err: any) {
+      console.error("[DASHBOARD_FETCH_ERROR]", err)
+      setError("Partial system outage. Some dashboard components are using fallback data.")
+    }
+  }
 
   // Students have firstName/lastName from DB; admin has username='ADMIN1'
   // Never show admin username on student dashboard
@@ -144,12 +176,18 @@ export default function StudentDashboard() {
         </header>
 
         <div className="p-6 space-y-5">
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+              <p className="text-red-400 text-sm flex-1">{error}</p>
+            </div>
+          )}
 
           {/* KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            <KPI icon={CheckCircle}  label="Avg Attendance"    value={isDummyUser ? "87%" : "0%"}  sub="This semester"         trend={isDummyUser ? "+5%" : "0%"}   up color="text-green-400"  bg="bg-green-500/10"  />
+            <KPI icon={CheckCircle}  label="Avg Attendance"    value={attendanceStats ? `${attendanceStats.attendancePercentage}%` : "0%"}  sub="This semester"         trend={attendanceStats ? "+5%" : "0%"}   up color="text-green-400"  bg="bg-green-500/10"  />
             <KPI icon={Calendar}     label="Events Registered" value={isDummyUser ? 5 : 0}    sub={isDummyUser ? "2 upcoming" : "0 upcoming"}             trend={isDummyUser ? "+2" : "0"}    up color="text-blue-400"   bg="bg-blue-500/10"   />
-            <KPI icon={IndianRupee}  label="Fees Due"          value={isDummyUser ? "₹50k" : "₹0"} sub={isDummyUser ? "Sem 7" : "All clear"}                 trend={isDummyUser ? "Action" : "Clear"} up={false} color="text-red-400"   bg="bg-red-500/10"   />
+            <KPI icon={IndianRupee}  label="Fees Due"          value={feeStats !== null ? `₹${(feeStats/1000).toFixed(0)}k` : "₹0"} sub={feeStats !== null && feeStats > 0 ? "Sem 6" : "All clear"}                 trend={feeStats !== null && feeStats > 0 ? "Action" : "Clear"} up={false} color="text-red-400"   bg="bg-red-500/10"   />
             <KPI icon={ShoppingBag}  label="Food Orders"       value={isDummyUser ? 18 : 0}   sub="This month"             trend={isDummyUser ? "+6" : "0"}    up color="text-[#e78a53]"  bg="bg-[#e78a53]/10"  />
             <KPI icon={Briefcase}    label="Applications"      value={isDummyUser ? 3 : 0}    sub={isDummyUser ? "1 under review" : "0 under review"}         trend={isDummyUser ? "+1" : "0"}    up color="text-purple-400" bg="bg-purple-500/10" />
             <KPI icon={BookOpen}     label="Resources"         value={isDummyUser ? 7 : 0}    sub={isDummyUser ? "3 downloaded this week" : "0 downloaded"} trend={isDummyUser ? "+3" : "0"}    up color="text-teal-400"   bg="bg-teal-500/10"   />

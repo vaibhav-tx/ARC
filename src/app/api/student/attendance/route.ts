@@ -1,30 +1,11 @@
 import { NextResponse } from "next/server";
+import { connectToDatabase } from "@/services/database";
+import { AttendanceModel } from "@/lib/models";
+import mongoose from "mongoose";
 
-interface Classroom {
-  _id: string;
-  title: string;
-  subject: string;
-  teacherName: string;
-}
-
-interface AttendanceRecord {
-  _id: string;
-  date: string;
-  status: "present" | "absent" | "late";
-  subjectName: string;
-  timeSlot?: string;
-  remarks?: string;
-  createdAt: string;
-  classroomId: string;
-}
-
-interface Enrollment {
-  _id: string;
-  classroomId: string;
-  classroom: Classroom;
-}
-
-const mockEnrollments: Enrollment[] = [
+// We'll keep enrollments mocked for the dropdown UI since full Classroom schedule mapping 
+// requires a massive teacher-side refactor outside the current vertical slice scope.
+const mockEnrollments = [
   {
     _id: "e1",
     classroomId: "mc1",
@@ -57,111 +38,120 @@ const mockEnrollments: Enrollment[] = [
   },
 ];
 
-const mockAttendanceRecords: AttendanceRecord[] = [
+const mockAttendanceRecords = [
   {
-    _id: "a1",
-    date: new Date(Date.now() - 1 * 86400000).toISOString(),
+    date: new Date(Date.now() - 1 * 86400000).toISOString().split('T')[0],
     status: "present",
     subjectName: "Data Structures & Algorithms",
+    className: "Data Structures & Algorithms",
     timeSlot: "09:00–10:30",
     remarks: "",
-    createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
-    classroomId: "mc1",
   },
   {
-    _id: "a2",
-    date: new Date(Date.now() - 3 * 86400000).toISOString(),
+    date: new Date(Date.now() - 3 * 86400000).toISOString().split('T')[0],
     status: "present",
     subjectName: "Database Management Systems",
+    className: "Database Management Systems",
     timeSlot: "10:00–11:30",
     remarks: "",
-    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    classroomId: "mc2",
   },
   {
-    _id: "a3",
-    date: new Date(Date.now() - 4 * 86400000).toISOString(),
+    date: new Date(Date.now() - 4 * 86400000).toISOString().split('T')[0],
     status: "late",
     subjectName: "Data Structures & Algorithms",
+    className: "Data Structures & Algorithms",
     timeSlot: "09:00–10:30",
     remarks: "Bus delay",
-    createdAt: new Date(Date.now() - 4 * 86400000).toISOString(),
-    classroomId: "mc1",
   },
   {
-    _id: "a4",
-    date: new Date(Date.now() - 6 * 86400000).toISOString(),
+    date: new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0],
     status: "present",
     subjectName: "Data Structures & Algorithms",
+    className: "Data Structures & Algorithms",
     timeSlot: "09:00–10:30",
     remarks: "",
-    createdAt: new Date(Date.now() - 6 * 86400000).toISOString(),
-    classroomId: "mc1",
   },
   {
-    _id: "a5",
-    date: new Date(Date.now() - 8 * 86400000).toISOString(),
+    date: new Date(Date.now() - 8 * 86400000).toISOString().split('T')[0],
     status: "absent",
     subjectName: "Database Management Systems",
+    className: "Database Management Systems",
     timeSlot: "10:00–11:30",
     remarks: "Sick",
-    createdAt: new Date(Date.now() - 8 * 86400000).toISOString(),
-    classroomId: "mc2",
   },
 ];
 
-const mockStatistics = {
-  totalClasses: 5,
-  presentCount: 3,
-  lateCount: 1,
-  absentCount: 1,
-  attendancePercentage: 80,
-};
-
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const studentId = searchParams.get("studentId");
-  const classroomId = searchParams.get("classroomId");
-  const startDate = searchParams.get("startDate");
-  const endDate = searchParams.get("endDate");
+  try {
+    await connectToDatabase();
+    
+    const { searchParams } = new URL(req.url);
+    const studentId = searchParams.get("studentId");
+    const classroomId = searchParams.get("classroomId");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
-  if (!studentId) {
-    return NextResponse.json(
-      { error: "studentId is required" },
-      { status: 400 },
-    );
+    if (!studentId || !mongoose.Types.ObjectId.isValid(studentId)) {
+      return NextResponse.json({ error: "Valid studentId is required" }, { status: 400 });
+    }
+
+    // --- AUTO-SEEDER FOR HACKATHON DEMO ---
+    const count = await AttendanceModel.countDocuments({ studentId });
+    if (count === 0) {
+      console.log(`[SEEDER] Seeding attendance for student: ${studentId}`);
+      // Give them a dummy teacher ID to satisfy schema
+      const dummyTeacherId = new mongoose.Types.ObjectId();
+      const seedData = mockAttendanceRecords.map(r => ({
+        ...r,
+        studentId: new mongoose.Types.ObjectId(studentId),
+        teacherId: dummyTeacherId
+      }));
+      await AttendanceModel.insertMany(seedData);
+    }
+    // --------------------------------------
+
+    const query: any = { studentId };
+    
+    if (classroomId) {
+      const targetClass = mockEnrollments.find(e => e.classroomId === classroomId);
+      if (targetClass) {
+        query.subjectName = targetClass.classroom.title;
+      }
+    }
+
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = startDate;
+      if (endDate) query.date.$lte = endDate;
+    }
+
+    const attendanceRecords = await AttendanceModel.find(query).sort({ date: -1 }).lean().exec();
+
+    // Calculate Real Statistics
+    const statistics = {
+      totalClasses: attendanceRecords.length,
+      presentCount: attendanceRecords.filter(r => r.status === 'present').length,
+      lateCount: attendanceRecords.filter(r => r.status === 'late').length,
+      absentCount: attendanceRecords.filter(r => r.status === 'absent').length,
+      attendancePercentage: 0
+    };
+    
+    if (statistics.totalClasses > 0) {
+       statistics.attendancePercentage = Math.round(((statistics.presentCount + (statistics.lateCount * 0.5)) / statistics.totalClasses) * 100);
+    }
+
+    const classroom = classroomId
+      ? (mockEnrollments.find((e) => e.classroomId === classroomId)?.classroom ?? null)
+      : null;
+
+    return NextResponse.json({
+      attendanceRecords,
+      enrollments: mockEnrollments,
+      statistics,
+      classroom,
+    });
+  } catch (error: any) {
+    console.error("[ATTENDANCE_GET_ERROR]", error);
+    return NextResponse.json({ error: "Failed to load attendance records." }, { status: 500 });
   }
-
-  let attendanceRecords = [...mockAttendanceRecords];
-  if (classroomId) {
-    attendanceRecords = attendanceRecords.filter(
-      (record) => record.classroomId === classroomId,
-    );
-  }
-
-  if (startDate) {
-    const minDate = new Date(startDate);
-    attendanceRecords = attendanceRecords.filter(
-      (record) => new Date(record.date) >= minDate,
-    );
-  }
-  if (endDate) {
-    const maxDate = new Date(endDate);
-    attendanceRecords = attendanceRecords.filter(
-      (record) => new Date(record.date) <= maxDate,
-    );
-  }
-
-  const classroom = classroomId
-    ? (mockEnrollments.find(
-        (enrollment) => enrollment.classroomId === classroomId,
-      )?.classroom ?? null)
-    : null;
-
-  return NextResponse.json({
-    attendanceRecords,
-    enrollments: mockEnrollments,
-    statistics: mockStatistics,
-    classroom,
-  });
 }

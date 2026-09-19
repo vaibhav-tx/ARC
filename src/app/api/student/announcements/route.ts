@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { connectToDatabase } from "@/services/database"
+import { AnnouncementModel } from "@/lib/models"
 
 // Mock announcements data
 const mockAnnouncements = [
@@ -93,23 +95,41 @@ export async function GET(req: Request) {
   const limit = parseInt(searchParams.get("limit") || "10")
 
   try {
-    let announcements = mockAnnouncements.filter((a) => a.isActive)
+    await connectToDatabase()
 
-    if (category) {
-      announcements = announcements.filter((a) => a.category === category)
+    // --- AUTO-SEEDER FOR HACKATHON DEMO ---
+    // If the database is empty, seed it with the mock data so the demo doesn't break
+    const count = await AnnouncementModel.countDocuments()
+    if (count === 0) {
+      console.log("Seeding Announcements database...")
+      await AnnouncementModel.insertMany(mockAnnouncements.map(a => {
+        // Strip the string _id so Mongo assigns a real ObjectId
+        const { _id, ...rest } = a
+        return rest
+      }))
     }
-    if (priority) {
-      announcements = announcements.filter((a) => a.priority === priority)
-    }
+    // --------------------------------------
 
-    // Sort by creation date (newest first)
-    announcements.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    // Build the query object
+    const query: any = { isActive: true }
+    if (category) query.category = category
+    if (priority) query.priority = priority
+
+    // Fetch from MongoDB
+    const announcements = await AnnouncementModel.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean()
+      .exec()
+
+    const total = await AnnouncementModel.countDocuments(query)
 
     return NextResponse.json({
-      announcements: announcements.slice(0, limit),
-      total: announcements.length,
+      announcements,
+      total,
     })
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch announcements" }, { status: 500 })
+  } catch (error: any) {
+    console.error("[ANNOUNCEMENTS_API_ERROR]", error)
+    return NextResponse.json({ error: "Failed to fetch announcements. " + error?.message }, { status: 500 })
   }
 }

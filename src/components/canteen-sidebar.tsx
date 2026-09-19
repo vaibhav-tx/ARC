@@ -42,6 +42,13 @@ export function CanteenSidebar({ className = "" }: SidebarProps) {
     }
   }, [])
 
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn")
+    localStorage.removeItem("userRole")
+    localStorage.removeItem("currentUser")
+    window.location.href = "/login"
+  }
+
   const isActive = (path: string) => pathname === path || (path.includes('/digital-menu') && pathname.includes('/digital-menu'))
 
   // 4. Added the Digital Menu to the array with the dynamic ID
@@ -91,12 +98,7 @@ export function CanteenSidebar({ className = "" }: SidebarProps) {
             variant="ghost" 
             size="icon"
             className="hover:bg-red-500/10 hover:text-red-400 rounded-xl text-zinc-400 transition-colors"
-            onClick={() => {
-              localStorage.removeItem('currentUser')
-              localStorage.removeItem('isLoggedIn')
-              localStorage.removeItem('userRole')
-              window.location.href = '/'
-            }}
+            onClick={handleLogout}
           >
             <LogOut className="h-5 w-5" />
           </Button>

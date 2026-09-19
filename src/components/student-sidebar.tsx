@@ -29,6 +29,13 @@ interface SidebarProps {
 export function StudentSidebar({ className = "" }: SidebarProps) {
   const pathname = usePathname();
 
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("currentUser");
+    window.location.href = "/login";
+  };
+
   const isActive = (path: string) => pathname === path;
 
   const navItems = [
@@ -89,7 +96,7 @@ export function StudentSidebar({ className = "" }: SidebarProps) {
           <Button variant="ghost" size="icon">
             <Settings className="h-5 w-5 text-zinc-400" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={handleLogout}>
             <LogOut className="h-5 w-5 text-zinc-400" />
           </Button>
         </div>

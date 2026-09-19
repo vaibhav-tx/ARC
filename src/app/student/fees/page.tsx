@@ -11,6 +11,7 @@ import {
   IndianRupee, AlertCircle, CheckCircle, Clock, Download, Eye, ArrowRight
 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { toast } from "sonner"
 
 interface FeeRecord {
   _id: string
@@ -32,6 +33,7 @@ interface FeeRecord {
 export default function StudentFeesPage() {
   const [fees, setFees] = useState<FeeRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [selectedFee, setSelectedFee] = useState<FeeRecord | null>(null)
 
@@ -41,12 +43,24 @@ export default function StudentFeesPage() {
 
   const fetchFees = async () => {
     setLoading(true)
+    setError(null)
     try {
-      const res = await fetch("/api/student/fees")
+      const userStr = localStorage.getItem("currentUser")
+      if (!userStr) throw new Error("Authentication required")
+      const user = JSON.parse(userStr)
+
+      const res = await fetch(`/api/student/fees?studentId=${user.id}`)
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || "Failed to fetch fees")
+      }
+      
       const data = await res.json()
       setFees(data.fees || [])
-    } catch (error) {
-      console.error("Failed to fetch fees:", error)
+    } catch (err: any) {
+      console.error("[FETCH_FEES_ERROR]", err)
+      setError(err.message || "An unexpected error occurred while fetching fees.")
+      toast.error("Failed to load fee records.")
     } finally {
       setLoading(false)
     }
@@ -67,17 +81,19 @@ export default function StudentFeesPage() {
           feesId: selectedFee._id,
           amount,
           paymentMethod: "online",
-          transactionId: `TXN-${Date.now()}`,
         }),
       })
 
       if (res.ok) {
-        alert("Payment recorded successfully!")
+        toast.success("Payment recorded successfully!")
         setShowPaymentForm(false)
         fetchFees()
+      } else {
+        const errorData = await res.json()
+        throw new Error(errorData.error || "Payment failed.")
       }
-    } catch (error) {
-      alert("Payment failed. Please try again.")
+    } catch (err: any) {
+      toast.error(err.message || "Payment failed. Please try again.")
     }
   }
 
@@ -141,9 +157,22 @@ export default function StudentFeesPage() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <p className="text-zinc-400">Loading...</p>
+                <div className="flex flex-col items-center justify-center py-12 text-zinc-400">
+                   <Clock className="h-8 w-8 mb-4 animate-spin text-[#e78a53]" />
+                   <p>Loading fee records...</p>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center py-12 text-zinc-400 bg-red-500/5 rounded-xl border border-red-500/20">
+                   <AlertCircle className="h-8 w-8 mb-4 text-red-400" />
+                   <p className="text-red-400 font-medium">Error loading data</p>
+                   <p className="text-sm mt-1">{error}</p>
+                   <Button onClick={fetchFees} variant="outline" className="mt-4 border-zinc-700 text-zinc-300 hover:text-white">Retry</Button>
+                </div>
               ) : fees.length === 0 ? (
-                <p className="text-zinc-400">No fees records found</p>
+                <div className="flex flex-col items-center justify-center py-12 text-zinc-400">
+                   <CheckCircle className="h-8 w-8 mb-4 text-green-400" />
+                   <p>No pending fees records found</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {fees.map((fee) => {
