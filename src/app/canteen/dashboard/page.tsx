@@ -15,6 +15,7 @@ import {
   Users,
   Clock,
   AlertTriangle,
+  AlertCircle,
   CheckCircle,
   Package,
   IndianRupee,
@@ -421,7 +422,7 @@ export default function CanteenDashboard() {
             {/* AI Demand Forecast */}
             <CanteenDemandCard
               orders={recentOrders.flatMap((o) =>
-                o.items.map((item) => ({ item, quantity: 1, time: "12:00" }))
+                o.items.map((item: any) => ({ item, quantity: 1, time: "12:00" }))
               )}
             />
           </div>

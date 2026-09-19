@@ -25,20 +25,22 @@ export function AIScheduleChat({ isOpen, onClose, onScheduleGenerated, classroom
     const [isListening, setIsListening] = useState(false)
     const [isGenerating, setIsGenerating] = useState(false)
     const [messages, setMessages] = useState<Array<{ id: string, type: 'user' | 'ai', content: string }>>([])
-    const recognitionRef = useRef<SpeechRecognition | null>(null)
+    const recognitionRef = useRef<any>(null)
     const { toast } = useToast()
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-            recognitionRef.current = new SpeechRecognition()
+        const win = typeof window !== 'undefined' ? (window as any) : {}
+        const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition
+
+        if (SpeechRecognitionClass) {
+            recognitionRef.current = new SpeechRecognitionClass()
 
             if (recognitionRef.current) {
                 recognitionRef.current.continuous = true
                 recognitionRef.current.interimResults = true
                 recognitionRef.current.lang = 'en-US'
 
-                recognitionRef.current.onresult = (event) => {
+                recognitionRef.current.onresult = (event: any) => {
                     let transcript = ''
                     for (let i = event.resultIndex; i < event.results.length; i++) {
                         if (event.results[i].isFinal) {
@@ -50,7 +52,7 @@ export function AIScheduleChat({ isOpen, onClose, onScheduleGenerated, classroom
                     }
                 }
 
-                recognitionRef.current.onerror = (event) => {
+                recognitionRef.current.onerror = (event: any) => {
                     console.error('Speech recognition error:', event.error)
                     setIsListening(false)
                     toast({

@@ -28,7 +28,6 @@ export default function AdminDashboard() {
     resources: 0,
     internships: 0,
     parkingRequests: 0,
-    parkingRequests: 0,
     totalEntities: 0
   })
   const [isLoading, setIsLoading] = useState(false)

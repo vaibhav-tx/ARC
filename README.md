@@ -14,8 +14,8 @@ ARC (Advanced Resource & Community Management) is an all-in-one campus managemen
 
 Watch the ARC platform in action:
 
-- \*\*[Demo Video & Resources]
-  https://drive.google.com/drive/folders/1oIR6s3RreYCWm6Vy1ZrBXr4e4zL4LSW4
+- \*\*[Deployed Website Link]
+  https://arc-puce-nine.vercel.app/ 
 
 ---
 

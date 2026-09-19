@@ -156,10 +156,11 @@ function getAvatarInitials(firstName: string, lastName: string) {
 
 export async function POST(
   request: Request,
-  { params }: { params: { role: string } },
+  { params }: { params: Promise<{ role: string }> },
 ) {
-  const role = params?.role?.toLowerCase();
-  const Model = role ? roleModels[role] : undefined;
+  const { role: rawRole } = await params;
+  const role = rawRole?.toLowerCase();
+  const Model = role ? (roleModels as Record<string, any>)[role] : undefined;
 
   // 1. Rate Limiting Protection (Security Hardening)
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";

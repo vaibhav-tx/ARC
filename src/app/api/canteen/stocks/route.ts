@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     if (count === 0 && (!category || category === "all") && (!status || status === "all")) {
       // Auto-seeder
       const { sampleStockItems } = await import("@/lib/sample-stock-data");
-      const seededData = sampleStockItems.map((item) => {
+      const seededData = sampleStockItems.map((item: any) => {
         const { _id, ...rest } = item;
         return { ...rest, canteenId };
       });

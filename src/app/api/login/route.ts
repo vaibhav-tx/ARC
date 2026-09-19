@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     }
     // -----------------------------
 
-    let Model;
+    let Model: any;
     if (role === "student") {
       Model = StudentModel;
     } else if (role === "teacher") {
