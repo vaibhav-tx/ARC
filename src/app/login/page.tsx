@@ -186,7 +186,9 @@ export default function LoginPage() {
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <Button
+              type="button"
               variant="outline"
+              onClick={() => alert("OAuth login is not configured for this hackathon demo. Please use the email/password sign-in above.")}
               className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all duration-200 group"
             >
               <svg
@@ -213,7 +215,9 @@ export default function LoginPage() {
               Google
             </Button>
             <Button
+              type="button"
               variant="outline"
+              onClick={() => alert("OAuth login is not configured for this hackathon demo. Please use the email/password sign-in above.")}
               className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all duration-200 group"
             >
               <svg

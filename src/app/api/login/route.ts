@@ -18,6 +18,26 @@ export async function POST(request: Request) {
       );
     }
 
+    // --- HACKATHON DEMO BYPASS ---
+    // Allow our hardcoded demo accounts to log in without needing to exist in the database
+    const demoAccounts: Record<string, any> = {
+      "rahul.sharma@student.edu": { role: "student", name: "Rahul Sharma", id: "demo-student-1", avatarInitials: "RS" },
+      "priya.verma@college.edu": { role: "teacher", name: "Priya Verma", id: "demo-teacher-1", avatarInitials: "PV" },
+      "sanjay.canteen@campus.in": { role: "canteen", name: "Sanjay Kumar", id: "demo-canteen-1", avatarInitials: "SK" }
+    };
+    
+    if (demoAccounts[email.toLowerCase()] && demoAccounts[email.toLowerCase()].role === role) {
+      const user = demoAccounts[email.toLowerCase()];
+      return NextResponse.json({
+        id: user.id,
+        name: user.name,
+        email: email,
+        role: user.role,
+        avatarInitials: user.avatarInitials,
+      });
+    }
+    // -----------------------------
+
     let Model;
     if (role === "student") {
       Model = StudentModel;
