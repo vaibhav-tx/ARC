@@ -116,7 +116,7 @@ export default function TeacherClassroomPage() {
 
     const fetchClassrooms = async () => {
         try {
-            const response = await fetch(`/api/classrooms?teacherId=${currentUser._id || currentUser.id}`)
+            const response = await fetch(`/api/teacher/classrooms?teacherId=${currentUser._id || currentUser.id}`)
             if (response.ok) {
                 const data = await response.json()
                 setClassrooms(data.classrooms || [])
@@ -196,7 +196,7 @@ export default function TeacherClassroomPage() {
 
         setLoading(true)
         try {
-            const response = await fetch('/api/classrooms', {
+            const response = await fetch('/api/teacher/classrooms', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -284,7 +284,7 @@ export default function TeacherClassroomPage() {
 
         setLoading(true)
         try {
-            const response = await fetch('/api/classrooms', {
+            const response = await fetch(`/api/teacher/classrooms?id=${selectedClassroom._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -352,7 +352,7 @@ export default function TeacherClassroomPage() {
 
         setLoading(true)
         try {
-            const response = await fetch(`/api/classrooms?classroomId=${selectedClassroom._id}&teacherId=${currentUser._id || currentUser.id}`, {
+            const response = await fetch(`/api/teacher/classrooms?id=${selectedClassroom._id}`, {
                 method: 'DELETE'
             })
 

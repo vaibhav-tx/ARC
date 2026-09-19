@@ -33,6 +33,8 @@ import {
   TrendingUp,
   AlertCircle
 } from "lucide-react"
+import { toast } from "sonner"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface StockItem {
   _id: string
@@ -58,6 +60,7 @@ interface StockItem {
 export default function CanteenStocksPage() {
   const [stockItems, setStockItems] = useState<StockItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [canteenId, setCanteenId] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isRestockDialogOpen, setIsRestockDialogOpen] = useState(false)
@@ -103,24 +106,18 @@ export default function CanteenStocksPage() {
   const fetchStockItems = async () => {
     if (!canteenId) return
     setIsLoading(true)
+    setError(null)
     try {
       const response = await fetch(`/api/canteen/stocks?canteenId=${canteenId}`)
       const result = await response.json()
-      if (response.ok && result.data && result.data.length > 0) {
-        setStockItems(result.data)
+      if (response.ok) {
+        setStockItems(result.data || [])
       } else {
-        if (!response.ok) console.error('Error fetching stock items:', result.error)
-        // Auto-load sample data as fallback when API returns empty or errors
-        const { sampleStockItems } = await import("@/lib/sample-stock-data")
-        setStockItems(sampleStockItems)
+        throw new Error(result.error || "Failed to fetch stock items")
       }
-    } catch (error) {
-      console.error('Error fetching stock items:', error)
-      // Auto-load sample data as fallback on network/fetch errors
-      try {
-        const { sampleStockItems } = await import("@/lib/sample-stock-data")
-        setStockItems(sampleStockItems)
-      } catch { /* ignore import error */ }
+    } catch (err: any) {
+      console.error('Error fetching stock items:', err)
+      setError(err.message || "Failed to load live data. The backend might be unreachable.")
     } finally {
       setIsLoading(false)
     }
@@ -165,9 +162,9 @@ export default function CanteenStocksPage() {
     e.preventDefault()
     if (!formData.name || !formData.category || !formData.currentStock || !formData.unit || 
         !formData.minimumStock || !formData.maximumStock || !formData.costPerUnit) {
-      return alert("Please fill in all required fields")
+      return toast.error("Please fill in all required fields")
     }
-    if (!canteenId) return alert("Canteen ID not found. Please login again.")
+    if (!canteenId) return toast.error("Canteen ID not found. Please login again.")
 
     setIsLoading(true)
     try {
@@ -183,18 +180,20 @@ export default function CanteenStocksPage() {
       const response = await fetch('/api/canteen/stocks', {
         method: editingItem ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingItem ? { ...itemData, id: editingItem._id } : itemData)
+        body: JSON.stringify(editingItem ? { ...itemData, _id: editingItem._id } : itemData)
       })
       if (response.ok) {
+        toast.success(editingItem ? "Stock item updated" : "Stock item created")
         await fetchStockItems()
         setIsDialogOpen(false)
         resetForm()
       } else {
         const result = await response.json()
-        alert('Error saving stock item: ' + result.error)
+        toast.error('Error saving stock item: ' + result.error)
       }
     } catch (error) {
       console.error('Error saving stock item:', error)
+      toast.error("Failed to save stock item")
     } finally {
       setIsLoading(false)
     }
@@ -202,15 +201,17 @@ export default function CanteenStocksPage() {
 
   const handleRestock = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!restockData.quantity || !restockingItem) return alert("Please enter restock quantity")
+    if (!restockData.quantity || !restockingItem) return toast.error("Please enter restock quantity")
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/canteen/stocks/restock', {
-        method: 'POST',
+      const response = await fetch('/api/canteen/stocks', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: restockingItem._id, quantity: restockData.quantity,
+          _id: restockingItem._id, 
+          action: 'restock',
+          quantity: restockData.quantity,
           costPerUnit: restockData.costPerUnit || restockingItem.costPerUnit,
           supplier: restockData.supplier || restockingItem.supplier,
           expiryDate: restockData.expiryDate || null,
@@ -218,12 +219,16 @@ export default function CanteenStocksPage() {
         })
       })
       if (response.ok) {
+        toast.success("Stock item restocked successfully")
         await fetchStockItems()
         setIsRestockDialogOpen(false)
         resetRestockForm()
+      } else {
+        toast.error("Error restocking item")
       }
     } catch (error) {
       console.error('Error restocking item:', error)
+      toast.error("Failed to restock item")
     } finally {
       setIsLoading(false)
     }
@@ -235,10 +240,12 @@ export default function CanteenStocksPage() {
       try {
         const response = await fetch(`/api/canteen/stocks?id=${id}`, { method: 'DELETE' })
         if (response.ok) {
+          toast.success("Stock item deleted")
           await fetchStockItems()
         }
       } catch (error) {
         console.error('Error deleting stock item:', error)
+        toast.error("Failed to delete stock item")
       } finally {
         setIsLoading(false)
       }
@@ -246,22 +253,24 @@ export default function CanteenStocksPage() {
   }
 
   const handleLoadSampleData = async () => {
-    if (!canteenId) return alert("Canteen ID not found. Please login again.")
+    if (!canteenId) return toast.error("Canteen ID not found. Please login again.")
     if (confirm("This will add sample stock items to your database. Continue?")) {
       setIsLoading(true)
       try {
         const { sampleStockItems } = await import("@/lib/sample-stock-data")
         for (const item of sampleStockItems) {
+          const itemData = { ...item, canteenId: canteenId, id: undefined }
           await fetch('/api/canteen/stocks', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...item, canteenId })
+            body: JSON.stringify(itemData)
           })
         }
         await fetchStockItems()
-        alert("Sample stock data loaded successfully!")
+        toast.success("Sample stock data loaded successfully!")
       } catch (error) {
         console.error('Error loading sample data:', error)
+        toast.error("Failed to load sample data")
       } finally {
         setIsLoading(false)
       }
@@ -494,6 +503,14 @@ export default function CanteenStocksPage() {
         </header>
 
         <div className="p-8 max-w-[1600px] mx-auto">
+          {error && (
+            <Alert variant="destructive" className="mb-6 bg-red-500/10 border-red-500/50 text-red-500">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Connection Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           {/* Premium Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
             <Card className="bg-zinc-900/40 border-zinc-800/60 backdrop-blur-md hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300">

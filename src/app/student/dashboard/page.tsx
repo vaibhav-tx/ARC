@@ -18,50 +18,10 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
-// ── Mock analytics data ───────────────────────────────────────────────────────
-const attendanceTrend = [
-  { month: "Nov", attendance: 78 }, { month: "Dec", attendance: 82 },
-  { month: "Jan", attendance: 88 }, { month: "Feb", attendance: 85 },
-  { month: "Mar", attendance: 91 }, { month: "Apr", attendance: 87 },
-]
-
-const subjectAttendance = [
-  { subject: "DSA",    pct: 92, classes: 46 },
-  { subject: "DBMS",   pct: 88, classes: 44 },
-  { subject: "OS",     pct: 75, classes: 38 },
-  { subject: "CN",     pct: 95, classes: 48 },
-  { subject: "SE",     pct: 83, classes: 42 },
-]
-
-const eventTypes = [
-  { name: "Academic", value: 3, fill: "#60a5fa" },
-  { name: "Cultural", value: 2, fill: "#a78bfa" },
-  { name: "Workshop", value: 2, fill: "#34d399" },
-  { name: "Sports",   value: 1, fill: "#f87171" },
-]
-
-const todaySchedule = [
-  { time: "9:00 AM",  subject: "Data Structures",  room: "Room 301", status: "upcoming", teacher: "Prof. Priya Verma" },
-  { time: "11:00 AM", subject: "DBMS Lab",          room: "Lab 2",    status: "upcoming", teacher: "Prof. Priya Verma" },
-  { time: "1:00 PM",  subject: "Lunch Break",       room: "—",        status: "break",    teacher: "—" },
-  { time: "2:00 PM",  subject: "Computer Networks", room: "Room 205", status: "upcoming", teacher: "Prof. Anil Kulkarni" },
-  { time: "4:00 PM",  subject: "SE Tutorial",       room: "Room 108", status: "upcoming", teacher: "Prof. Sneha Joshi" },
-]
-
-const upcomingEvents = [
-  { title: "HackSLRT Hackathon",      date: "Apr 20", type: "Academic", fee: 0,   icon: Code,      color: "text-blue-400"   },
-  { title: "Cultural Night & DJ",     date: "Apr 25", type: "Cultural", fee: 50,  icon: Music,     color: "text-purple-400" },
-  { title: "AI/ML Workshop by Google", date: "May 3",  type: "Workshop", fee: 100, icon: Lightbulb, color: "text-green-400"  },
-  { title: "Inter-College Cricket",   date: "May 10", type: "Sports",   fee: 200, icon: Trophy,    color: "text-red-400"    },
-]
-
-const recentActivity = [
-  { icon: ShoppingBag, color: "text-[#e78a53]", bg: "bg-[#e78a53]/10", text: "Veg Thali ordered from Campus Cafe",    time: "1 hr ago"  },
-  { icon: Calendar,    color: "text-blue-400",   bg: "bg-blue-500/10",  text: "Registered for AI/ML Workshop",         time: "3 hr ago"  },
-  { icon: Briefcase,   color: "text-purple-400", bg: "bg-purple-500/10",text: "Applied to Frontend Intern at TechCorp", time: "Yesterday" },
-  { icon: Car,         color: "text-yellow-400", bg: "bg-yellow-500/10",text: "Parking slot A-B-031 requested",         time: "Yesterday" },
-  { icon: BookOpen,    color: "text-green-400",  bg: "bg-green-500/10", text: "Downloaded DSA Notes from Dr. Mehta",    time: "2 days ago"},
-]
+// ── Icons mapping for dynamic data ──────────────────────────────────────────────
+const ICON_MAP: Record<string, any> = {
+  ShoppingBag, Calendar, Briefcase, Car, BookOpen, Code, Music, Trophy, Lightbulb, Palette
+};
 
 // ── Shared tooltip ────────────────────────────────────────────────────────────
 function ChartTip({ active, payload, label }: any) {
@@ -98,44 +58,42 @@ function KPI({ icon: Icon, label, value, sub, trend, up, color, bg }: any) {
 }
 
 export default function StudentDashboard() {
+  const [isClient, setIsClient] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [data, setData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [attendanceStats, setAttendanceStats] = useState<any>(null)
-  const [feeStats, setFeeStats] = useState<number | null>(null)
 
   useEffect(() => {
-    try {
-      const u = localStorage.getItem("currentUser")
-      if (u) {
-        const parsed = JSON.parse(u)
-        setCurrentUser(parsed)
-        fetchDashboardData(parsed.id || parsed._id)
+    setIsClient(true)
+    const loadUserAndData = async () => {
+      try {
+        const u = localStorage.getItem("currentUser")
+        if (u) {
+          const parsed = JSON.parse(u)
+          setCurrentUser(parsed)
+          
+          const res = await fetch(`/api/student/dashboard?studentId=${parsed.id || parsed._id}`)
+          const json = await res.json()
+          if (!res.ok) throw new Error(json.error || "Failed to fetch dashboard data")
+          setData(json)
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to connect to backend")
+      } finally {
+        setIsLoading(false)
       }
-    } catch {}
+    }
+    loadUserAndData()
   }, [])
 
-  const fetchDashboardData = async (studentId: string) => {
-    setError(null)
-    try {
-      // Parallel fetch to prove backend connections
-      const [attRes, feeRes] = await Promise.all([
-        fetch(`/api/student/attendance?studentId=${studentId}`),
-        fetch(`/api/student/fees?studentId=${studentId}`)
-      ])
-
-      if (!attRes.ok || !feeRes.ok) throw new Error("Dashboard data sync failed.")
-
-      const attData = await attRes.json()
-      const feeData = await feeRes.json()
-
-      setAttendanceStats(attData.statistics)
-      
-      const totalDue = (feeData.fees || []).reduce((sum: number, f: any) => sum + f.dueAmount, 0)
-      setFeeStats(totalDue)
-    } catch (err: any) {
-      console.error("[DASHBOARD_FETCH_ERROR]", err)
-      setError("Partial system outage. Some dashboard components are using fallback data.")
-    }
+  if (!isClient) return null
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e78a53]"></div>
+      </div>
+    )
   }
 
   // Students have firstName/lastName from DB; admin has username='ADMIN1'
@@ -149,8 +107,6 @@ export default function StudentDashboard() {
     if (currentUser.username && currentUser.username.toUpperCase() !== "ADMIN1") return currentUser.username
     return "Rohit Sharma"
   })()
-
-  const isDummyUser = currentUser?.email === "rahul.sharma@student.edu";
 
   return (
     <div className="min-h-screen bg-black flex">
@@ -185,12 +141,12 @@ export default function StudentDashboard() {
 
           {/* KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            <KPI icon={CheckCircle}  label="Avg Attendance"    value={attendanceStats ? `${attendanceStats.attendancePercentage}%` : "0%"}  sub="This semester"         trend={attendanceStats ? "+5%" : "0%"}   up color="text-green-400"  bg="bg-green-500/10"  />
-            <KPI icon={Calendar}     label="Events Registered" value={isDummyUser ? 5 : 0}    sub={isDummyUser ? "2 upcoming" : "0 upcoming"}             trend={isDummyUser ? "+2" : "0"}    up color="text-blue-400"   bg="bg-blue-500/10"   />
-            <KPI icon={IndianRupee}  label="Fees Due"          value={feeStats !== null ? `₹${(feeStats/1000).toFixed(0)}k` : "₹0"} sub={feeStats !== null && feeStats > 0 ? "Sem 6" : "All clear"}                 trend={feeStats !== null && feeStats > 0 ? "Action" : "Clear"} up={false} color="text-red-400"   bg="bg-red-500/10"   />
-            <KPI icon={ShoppingBag}  label="Food Orders"       value={isDummyUser ? 18 : 0}   sub="This month"             trend={isDummyUser ? "+6" : "0"}    up color="text-[#e78a53]"  bg="bg-[#e78a53]/10"  />
-            <KPI icon={Briefcase}    label="Applications"      value={isDummyUser ? 3 : 0}    sub={isDummyUser ? "1 under review" : "0 under review"}         trend={isDummyUser ? "+1" : "0"}    up color="text-purple-400" bg="bg-purple-500/10" />
-            <KPI icon={BookOpen}     label="Resources"         value={isDummyUser ? 7 : 0}    sub={isDummyUser ? "3 downloaded this week" : "0 downloaded"} trend={isDummyUser ? "+3" : "0"}    up color="text-teal-400"   bg="bg-teal-500/10"   />
+            <KPI icon={CheckCircle}  label="Avg Attendance"    value={data?.kpis?.attendance?.value || "0%"}  sub={data?.kpis?.attendance?.sub || "This semester"}         trend={data?.kpis?.attendance?.trend || "0%"}   up color="text-green-400"  bg="bg-green-500/10"  />
+            <KPI icon={Calendar}     label="Events Registered" value={data?.kpis?.events?.value || "0"}    sub={data?.kpis?.events?.sub || "0 upcoming"}             trend={data?.kpis?.events?.trend || "0"}    up color="text-blue-400"   bg="bg-blue-500/10"   />
+            <KPI icon={IndianRupee}  label="Fees Due"          value={data?.kpis?.fees?.value || "₹0"} sub={data?.kpis?.fees?.sub || "All clear"}                 trend={data?.kpis?.fees?.trend || "Clear"} up={false} color="text-red-400"   bg="bg-red-500/10"   />
+            <KPI icon={ShoppingBag}  label="Food Orders"       value={data?.kpis?.orders?.value || "0"}   sub={data?.kpis?.orders?.sub || "This month"}             trend={data?.kpis?.orders?.trend || "0"}    up color="text-[#e78a53]"  bg="bg-[#e78a53]/10"  />
+            <KPI icon={Briefcase}    label="Applications"      value={data?.kpis?.applications?.value || "0"}    sub={data?.kpis?.applications?.sub || "0 under review"}         trend={data?.kpis?.applications?.trend || "0"}    up color="text-purple-400" bg="bg-purple-500/10" />
+            <KPI icon={BookOpen}     label="Resources"         value={data?.kpis?.resources?.value || "0"}    sub={data?.kpis?.resources?.sub || "0 downloaded"} trend={data?.kpis?.resources?.trend || "0"}    up color="text-teal-400"   bg="bg-teal-500/10"   />
           </div>
 
           {/* Row 2: Attendance trend + Subject breakdown */}
@@ -203,7 +159,7 @@ export default function StudentDashboard() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
-                  <AreaChart data={isDummyUser ? attendanceTrend : []} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+                  <AreaChart data={data?.attendanceTrend || []} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
                     <defs>
                       <linearGradient id="attGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%"  stopColor="#34d399" stopOpacity={0.3} />
@@ -227,7 +183,7 @@ export default function StudentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {(isDummyUser ? subjectAttendance : []).map(s => (
+                {(data?.subjectAttendance || []).map((s: any) => (
                   <div key={s.subject}>
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-zinc-300 font-medium">{s.subject}</span>
@@ -257,14 +213,14 @@ export default function StudentDashboard() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={120}>
                   <PieChart>
-                    <Pie data={isDummyUser ? eventTypes : []} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={3} dataKey="value">
-                      {(isDummyUser ? eventTypes : []).map((e, i) => <Cell key={i} fill={e.fill} />)}
+                    <Pie data={data?.eventTypes || []} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={3} dataKey="value">
+                      {(data?.eventTypes || []).map((e: any, i: number) => <Cell key={i} fill={e.fill} />)}
                     </Pie>
                     <Tooltip content={<ChartTip />} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="grid grid-cols-2 gap-1.5 mt-2">
-                  {(isDummyUser ? eventTypes : []).map(e => (
+                  {(data?.eventTypes || []).map((e: any) => (
                     <div key={e.name} className="flex items-center gap-1.5 text-xs">
                       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: e.fill }} />
                       <span className="text-zinc-400">{e.name}</span>
@@ -274,8 +230,8 @@ export default function StudentDashboard() {
                 </div>
                 {/* Upcoming events */}
                 <div className="mt-3 pt-3 border-t border-zinc-800 space-y-1.5">
-                  {(isDummyUser ? upcomingEvents : []).map(ev => {
-                    const Icon = ev.icon
+                  {(data?.upcomingEvents || []).map((ev: any) => {
+                    const Icon = ICON_MAP[ev.icon] || Calendar
                     return (
                       <div key={ev.title} className="flex items-center gap-2 text-xs">
                         <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${ev.color}`} />
@@ -299,7 +255,7 @@ export default function StudentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {(isDummyUser ? todaySchedule : []).map((s, i) => (
+                {(data?.todaySchedule || []).map((s: any, i: number) => (
                   <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${s.status === "break" ? "bg-zinc-800/30" : "bg-zinc-800/50"}`}>
                     <span className="text-xs text-zinc-500 w-16 flex-shrink-0">{s.time}</span>
                     <div className="flex-1 min-w-0">
@@ -328,8 +284,8 @@ export default function StudentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {(isDummyUser ? recentActivity : []).map((a, i) => {
-                  const Icon = a.icon
+                {(data?.recentActivity || []).map((a: any, i: number) => {
+                  const Icon = ICON_MAP[a.icon] || Activity
                   return (
                     <div key={i} className="flex items-center gap-3 p-3 bg-zinc-800/40 rounded-xl hover:bg-zinc-800/70 transition-colors">
                       <div className={`p-2 rounded-lg flex-shrink-0 ${a.bg}`}><Icon className={`h-4 w-4 ${a.color}`} /></div>

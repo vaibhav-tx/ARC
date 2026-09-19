@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Shield, AlertCircle } from "lucide-react"
 import { isAuthenticatedAdmin } from '@/lib/auth-middleware'
+import { toast } from "sonner"
 
 export default function AdminLoginPage() {
   const [credentials, setCredentials] = useState({ username: 'ADMIN1', password: 'Admin@123' })
@@ -47,6 +48,7 @@ export default function AdminLoginPage() {
           role: 'admin'
         }))
 
+        toast.success("Admin Login Successful")
         window.location.href = '/admin/dashboard'
       } else {
         setError(data.error || 'Invalid credentials')

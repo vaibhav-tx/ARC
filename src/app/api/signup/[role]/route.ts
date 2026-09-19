@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/services/database";
 import { StudentModel, TeacherModel, CanteenModel } from "@/lib/models";
 import { rateLimit } from "@/lib/rate-limit";
+import bcrypt from "bcryptjs";
 
 const roleModels = {
   student: StudentModel,
@@ -227,6 +228,11 @@ export async function POST(
       ownerParts[0] || "",
       ownerParts[ownerParts.length - 1] || "",
     );
+  }
+
+  // 3. Security Hardening: Hash password before database insertion
+  if (typeof safeData.password === "string") {
+    safeData.password = await bcrypt.hash(safeData.password, 10);
   }
 
   try {

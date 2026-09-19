@@ -25,6 +25,7 @@ import {
   Download,
   Bell
 } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function CanteenDashboard() {
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -38,41 +39,65 @@ export default function CanteenDashboard() {
   const userName = currentUser?.name ?? ""
   const isDummyUser = currentUser?.email === "sanjay.canteen@campus.in"
 
-  const todaysStats = isDummyUser ? {
-    revenue: 15420,
-    orders: 89,
-    customers: 67,
-    avgOrderValue: 173
-  } : { revenue: 0, orders: 0, customers: 0, avgOrderValue: 0 }
+  const [todaysStats, setTodaysStats] = useState({ revenue: 0, orders: 0, customers: 0, avgOrderValue: 0 })
+  const [weeklyStats, setWeeklyStats] = useState({ revenue: 0, orders: 0, customers: 0, avgOrderValue: 0 })
+  const [monthlyStats, setMonthlyStats] = useState({ revenue: 0, orders: 0, customers: 0, avgOrderValue: 0 })
+  const [recentOrders, setRecentOrders] = useState<any[]>([])
+  const [lowStockItems, setLowStockItems] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const weeklyStats = isDummyUser ? {
-    revenue: 98500,
-    orders: 542,
-    customers: 389,
-    avgOrderValue: 182
-  } : { revenue: 0, orders: 0, customers: 0, avgOrderValue: 0 }
+  useEffect(() => {
+    if (userId) {
+      fetchDashboardData()
+    }
+  }, [userId])
 
-  const monthlyStats = isDummyUser ? {
-    revenue: 425000,
-    orders: 2340,
-    customers: 1456,
-    avgOrderValue: 181
-  } : { revenue: 0, orders: 0, customers: 0, avgOrderValue: 0 }
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true)
+      const [ordersRes, stocksRes] = await Promise.all([
+        fetch(`/api/orders?canteenId=${userId}&limit=10`),
+        fetch(`/api/canteen/stocks?canteenId=${userId}&status=critical`)
+      ])
+      
+      if (!ordersRes.ok || !stocksRes.ok) throw new Error("Failed to fetch dashboard data")
+      
+      const ordersData = await ordersRes.json()
+      const stocksData = await stocksRes.json()
 
-  const recentOrders = isDummyUser ? [
-    { id: "#ORD-2024-0089", customer: "Rohit Sharma", amount: 245, status: "completed", time: "2 min ago", items: ["Chicken Biryani", "Fresh Lime Soda"] },
-    { id: "#ORD-2024-0088", customer: "Prof. Priya Verma", amount: 95, status: "preparing", time: "5 min ago", items: ["Paneer Butter Masala"] },
-    { id: "#ORD-2024-0087", customer: "Amit Kumar", amount: 165, status: "completed", time: "8 min ago", items: ["Masala Dosa", "Samosa x2"] },
-    { id: "#ORD-2024-0086", customer: "Sneha Patel", amount: 75, status: "preparing", time: "12 min ago", items: ["Chole Bhature"] },
-    { id: "#ORD-2024-0085", customer: "Arjun Mehta", amount: 320, status: "completed", time: "15 min ago", items: ["Chicken Biryani x2", "Fresh Lime Soda"] }
-  ] : []
+      const orders = ordersData.data || []
+      
+      // Calculate basic stats for today
+      const today = new Date().setHours(0, 0, 0, 0)
+      const todayOrders = orders.filter((o: any) => new Date(o.orderDate).setHours(0, 0, 0, 0) === today)
+      
+      const todayRevenue = todayOrders.reduce((acc: number, curr: any) => acc + curr.totalAmount, 0)
+      setTodaysStats({
+        revenue: todayRevenue,
+        orders: todayOrders.length,
+        customers: new Set(todayOrders.map((o: any) => o.customerId)).size,
+        avgOrderValue: todayOrders.length > 0 ? Math.round(todayRevenue / todayOrders.length) : 0
+      })
+      
+      setRecentOrders(orders.slice(0, 5).map((o: any) => ({
+        id: o.orderId,
+        customer: o.customerName,
+        amount: o.totalAmount,
+        status: o.status,
+        time: "Just now", // Demo simplified
+        items: o.items.map((i: any) => i.name)
+      })))
 
-  const lowStockItems = isDummyUser ? [
-    { name: "Basmati Rice", current: "2.5 kg", minimum: "10 kg", status: "critical" },
-    { name: "Chicken", current: "5 kg", minimum: "15 kg", status: "low" },
-    { name: "Paneer", current: "3 kg", minimum: "8 kg", status: "low" },
-    { name: "Onions", current: "8 kg", minimum: "20 kg", status: "low" }
-  ] : []
+      setLowStockItems(stocksData.data || [])
+      setError(null)
+    } catch (err) {
+      console.error(err)
+      setError("Failed to load live data. The backend might be unreachable.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -123,6 +148,14 @@ export default function CanteenDashboard() {
         </header>
 
         <div className="p-8">
+          {error && (
+            <Alert variant="destructive" className="mb-6 bg-red-500/10 border-red-500/50 text-red-500">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Connection Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           {/* Today's Overview */}
           <div className="mb-8">
             <h2 className="text-xl font-bold text-white mb-4">Today's Overview</h2>

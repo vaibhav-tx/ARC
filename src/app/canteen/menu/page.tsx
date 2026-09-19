@@ -35,6 +35,8 @@ import {
   Leaf,
   Flame
 } from "lucide-react"
+import { toast } from "sonner"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface MenuItem {
   _id: string
@@ -90,6 +92,7 @@ export default function CanteenMenuPage() {
   ]
 
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [canteenId, setCanteenId] = useState<string | null>(null)
   const [currentDigitalMenuId, setCurrentDigitalMenuId] = useState<string | null>(null)
   const [digitalMenuLink, setDigitalMenuLink] = useState<string | null>(null)
@@ -117,31 +120,25 @@ export default function CanteenMenuPage() {
   const fetchMenuItems = async () => {
     if (!canteenId) return
     setIsLoading(true)
+    setError(null)
     try {
       const response = await fetch(`/api/canteen/menu?canteenId=${canteenId}`)
       const result = await response.json()
-      if (response.ok && result.data && result.data.length > 0) {
-        setMenuItems(result.data)
+      if (response.ok) {
+        setMenuItems(result.data || [])
       } else {
-        if (!response.ok) console.error('Error fetching menu items:', result.error)
-        // Auto-load sample data as fallback when API returns empty or errors
-        const { demoMenuItems } = await import("@/lib/sample-menu-data")
-        setMenuItems(demoMenuItems)
+        throw new Error(result.error || "Failed to fetch menu items")
       }
-    } catch (error) {
-      console.error('Error fetching menu items:', error)
-      // Auto-load sample data as fallback on network/fetch errors
-      try {
-        const { demoMenuItems } = await import("@/lib/sample-menu-data")
-        setMenuItems(demoMenuItems)
-      } catch { /* ignore import error */ }
+    } catch (err: any) {
+      console.error('Error fetching menu items:', err)
+      setError(err.message || "Failed to load live data. The backend might be unreachable.")
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleAddExtractedItem = async (item: any, digitalMenuId: string) => {
-    if (!canteenId) return alert("Canteen ID not found. Please login again.")
+    if (!canteenId) return toast.error("Canteen ID not found. Please login again.")
     try {
       const itemData = {
         canteenId: canteenId,
@@ -162,18 +159,20 @@ export default function CanteenMenuPage() {
         body: JSON.stringify(itemData)
       })
       if (response.ok) {
+        toast.success("Extracted item added successfully!")
         await fetchMenuItems()
       } else {
         const result = await response.json()
-        alert('Error adding item: ' + result.error)
+        toast.error('Error adding item: ' + result.error)
       }
     } catch (error) {
       console.error('Error adding extracted item:', error)
+      toast.error("Failed to add extracted item")
     }
   }
 
   const handleLoadSampleData = async () => {
-    if (!canteenId) return alert("Canteen ID not found. Please login again.")
+    if (!canteenId) return toast.error("Canteen ID not found. Please login again.")
     if (confirm("This will add sample menu items to your database. Continue?")) {
       setIsLoading(true)
       try {
@@ -187,9 +186,10 @@ export default function CanteenMenuPage() {
           })
         }
         await fetchMenuItems()
-        alert("Sample menu data loaded successfully!")
+        toast.success("Sample menu data loaded successfully!")
       } catch (error) {
         console.error('Error loading sample data:', error)
+        toast.error("Failed to load sample data")
       } finally {
         setIsLoading(false)
       }
@@ -235,9 +235,9 @@ export default function CanteenMenuPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name || !formData.price || !formData.category) {
-      return alert("Please fill in all required fields")
+      return toast.error("Please fill in all required fields")
     }
-    if (!canteenId) return alert("Canteen ID not found. Please login again.")
+    if (!canteenId) return toast.error("Canteen ID not found. Please login again.")
 
     setIsLoading(true)
     try {
@@ -561,6 +561,14 @@ export default function CanteenMenuPage() {
         </header>
 
         <div className="p-8 max-w-7xl mx-auto">
+          {error && (
+            <Alert variant="destructive" className="mb-6 bg-red-500/10 border-red-500/50 text-red-500">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Connection Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           {/* Menu Image Scanner Toggle */}
           <div className="mb-8">
             <div className="flex items-center justify-between bg-zinc-900/30 border border-zinc-800/50 p-4 rounded-2xl mb-4">

@@ -141,6 +141,52 @@ const CanteenSchema = new Schema(
   { timestamps: true }
 );
 
+const OrderSchema = new Schema(
+  {
+    orderId: { type: String, required: true, unique: true },
+    customerId: { type: String, required: true },
+    customerName: { type: String, required: true },
+    customerRole: { type: String, required: true },
+    customerEmail: { type: String, required: true },
+    customerPhone: { type: String },
+    canteenId: { type: String, required: true },
+    canteenName: { type: String, required: true },
+    items: [
+      {
+        menuItemId: { type: String, required: true },
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        quantity: { type: Number, required: true },
+        image: { type: String },
+        isVeg: { type: Boolean, default: true },
+        isSpicy: { type: Boolean, default: false },
+        prepTime: { type: Number, default: 0 },
+      }
+    ],
+    subtotal: { type: Number, required: true },
+    tax: { type: Number, required: true },
+    deliveryFee: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
+    totalAmount: { type: Number, required: true },
+    paymentMethod: { type: String, enum: ["online", "offline"], required: true },
+    paymentStatus: { type: String, enum: ["pending", "paid", "failed", "refunded"], default: "pending" },
+    status: {
+      type: String,
+      enum: ["placed", "confirmed", "preparing", "ready", "completed", "cancelled"],
+      default: "placed"
+    },
+    orderDate: { type: Date, default: Date.now },
+    estimatedTime: { type: String },
+    completedAt: { type: Date },
+    specialInstructions: { type: String },
+  },
+  { timestamps: true }
+);
+
+OrderSchema.index({ canteenId: 1, status: 1 });
+OrderSchema.index({ customerId: 1 });
+OrderSchema.index({ orderDate: -1 });
+
 const TimetableSchema = new Schema(
   {
     teacherId: { type: Schema.Types.ObjectId, ref: "Teacher", required: true },
@@ -405,14 +451,28 @@ const InternshipSchema = new Schema(
         "finance",
         "other",
       ],
+      default: "other",
     },
     experienceLevel: {
       type: String,
-      enum: ["fresher", "experienced"],
+      enum: ["fresher", "intermediate", "expert"],
       default: "fresher",
     },
     isRemote: { type: Boolean, default: false },
     applicationCount: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+
+const ParkingSchema = new Schema(
+  {
+    user: { type: String, required: true },
+    role: { type: String, enum: ["student", "teacher", "staff"], required: true },
+    vehicle: { type: String, required: true },
+    zone: { type: String, required: true },
+    requestedSlot: { type: String },
+    timeSlot: { type: String, required: true },
+    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
   },
   { timestamps: true }
 );
@@ -542,6 +602,7 @@ export const TeacherModel = models.Teacher || model("Teacher", TeacherSchema);
 // Delete cached model so schema changes take effect in dev hot-reload
 if (models.Canteen) delete models.Canteen;
 export const CanteenModel = model("Canteen", CanteenSchema);
+export const OrderModel = models.Order || model("Order", OrderSchema);
 export const TimetableModel =
   models.Timetable || model("Timetable", TimetableSchema);
 
@@ -753,3 +814,6 @@ export const ExamResultModel =
 
 export const AnnouncementModel =
   models.Announcement || model("Announcement", AnnouncementSchema);
+
+export const ParkingModel = 
+  models.Parking || model("Parking", ParkingSchema);

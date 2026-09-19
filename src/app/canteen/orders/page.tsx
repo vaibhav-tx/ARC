@@ -27,8 +27,11 @@ import {
   CreditCard,
   Flame,
   Wallet,
-  Receipt
+  Receipt,
+  AlertCircle
 } from "lucide-react"
+import { toast } from "sonner"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface Order {
   _id: string
@@ -67,19 +70,9 @@ interface Order {
 }
 
 export default function CanteenOrdersPage() {
-  const demoOrders: Order[] = [
-    { _id:"demo-co1", orderId:"ORD-CN-301", customerId:"student-1", customerName:"Rohit Sharma", customerRole:"student", customerEmail:"rohit@student.edu", customerPhone:"9876543210", canteenId:"canteen-demo", canteenName:"Campus Cafe", items:[{menuItemId:"m1",name:"Veg Thali",price:120,quantity:1,isVeg:true,isSpicy:false,prepTime:12},{menuItemId:"m2",name:"Mango Lassi",price:45,quantity:1,isVeg:true,isSpicy:false,prepTime:3}], subtotal:165, tax:8, deliveryFee:0, discount:0, totalAmount:173, paymentMethod:"online", paymentStatus:"paid", status:"completed", orderDate:new Date(Date.now()-10*60000).toISOString(), estimatedTime:"15 mins", specialInstructions:"Less spicy please", createdAt:new Date(Date.now()-10*60000).toISOString(), updatedAt:new Date().toISOString() },
-    { _id:"demo-co2", orderId:"ORD-CN-302", customerId:"teacher-1", customerName:"Prof. Priya Verma", customerRole:"teacher", customerEmail:"priya.verma@college.edu", customerPhone:"9823456780", canteenId:"canteen-demo", canteenName:"Campus Cafe", items:[{menuItemId:"m3",name:"Paneer Butter Masala",price:140,quantity:1,isVeg:true,isSpicy:false,prepTime:15},{menuItemId:"m4",name:"Tandoori Roti",price:20,quantity:3,isVeg:true,isSpicy:false,prepTime:5}], subtotal:200, tax:10, deliveryFee:0, discount:0, totalAmount:210, paymentMethod:"offline", paymentStatus:"paid", status:"preparing", orderDate:new Date(Date.now()-5*60000).toISOString(), estimatedTime:"20 mins", specialInstructions:"", createdAt:new Date(Date.now()-5*60000).toISOString(), updatedAt:new Date().toISOString() },
-    { _id:"demo-co3", orderId:"ORD-CN-303", customerId:"student-2", customerName:"Sneha Patel", customerRole:"student", customerEmail:"sneha@student.edu", customerPhone:"9765432109", canteenId:"canteen-demo", canteenName:"Campus Cafe", items:[{menuItemId:"m5",name:"Masala Dosa",price:80,quantity:1,isVeg:true,isSpicy:true,prepTime:10},{menuItemId:"m6",name:"Filter Coffee",price:30,quantity:1,isVeg:true,isSpicy:false,prepTime:4}], subtotal:110, tax:5, deliveryFee:0, discount:10, totalAmount:105, paymentMethod:"online", paymentStatus:"paid", status:"ready", orderDate:new Date(Date.now()-3*60000).toISOString(), estimatedTime:"12 mins", specialInstructions:"Extra chutney", createdAt:new Date(Date.now()-3*60000).toISOString(), updatedAt:new Date().toISOString() },
-    { _id:"demo-co4", orderId:"ORD-CN-304", customerId:"teacher-2", customerName:"Prof. Rakesh Sharma", customerRole:"teacher", customerEmail:"rakesh.sharma@college.edu", customerPhone:"9811223344", canteenId:"canteen-demo", canteenName:"Campus Cafe", items:[{menuItemId:"m7",name:"Chicken Biryani",price:180,quantity:1,isVeg:false,isSpicy:true,prepTime:20}], subtotal:180, tax:9, deliveryFee:0, discount:0, totalAmount:189, paymentMethod:"online", paymentStatus:"paid", status:"placed", orderDate:new Date(Date.now()-1*60000).toISOString(), estimatedTime:"25 mins", specialInstructions:"Not too spicy", createdAt:new Date(Date.now()-1*60000).toISOString(), updatedAt:new Date().toISOString() },
-    { _id:"demo-co5", orderId:"ORD-CN-305", customerId:"student-3", customerName:"Amit Kumar", customerRole:"student", customerEmail:"amit@student.edu", customerPhone:"9934567891", canteenId:"canteen-demo", canteenName:"Campus Cafe", items:[{menuItemId:"m8",name:"Chole Bhature",price:90,quantity:1,isVeg:true,isSpicy:true,prepTime:10},{menuItemId:"m9",name:"Samosa",price:25,quantity:2,isVeg:true,isSpicy:false,prepTime:3}], subtotal:140, tax:7, deliveryFee:0, discount:0, totalAmount:147, paymentMethod:"offline", paymentStatus:"pending", status:"confirmed", orderDate:new Date(Date.now()-8*60000).toISOString(), estimatedTime:"15 mins", specialInstructions:"", createdAt:new Date(Date.now()-8*60000).toISOString(), updatedAt:new Date().toISOString() },
-    { _id:"demo-co6", orderId:"ORD-CN-306", customerId:"teacher-3", customerName:"Dr. Anita Desai", customerRole:"teacher", customerEmail:"anita.desai@college.edu", customerPhone:"9745678901", canteenId:"canteen-demo", canteenName:"Campus Cafe", items:[{menuItemId:"m10",name:"Veg Sandwich",price:60,quantity:1,isVeg:true,isSpicy:false,prepTime:7},{menuItemId:"m11",name:"Cold Coffee",price:55,quantity:1,isVeg:true,isSpicy:false,prepTime:5}], subtotal:115, tax:6, deliveryFee:0, discount:0, totalAmount:121, paymentMethod:"online", paymentStatus:"paid", status:"completed", orderDate:new Date(Date.now()-30*60000).toISOString(), estimatedTime:"10 mins", specialInstructions:"", createdAt:new Date(Date.now()-30*60000).toISOString(), updatedAt:new Date().toISOString() },
-    { _id:"demo-co7", orderId:"ORD-CN-307", customerId:"student-4", customerName:"Priya Singh", customerRole:"student", customerEmail:"priya.s@student.edu", customerPhone:"9823456701", canteenId:"canteen-demo", canteenName:"Campus Cafe", items:[{menuItemId:"m12",name:"Rajma Chawal",price:100,quantity:1,isVeg:true,isSpicy:false,prepTime:12}], subtotal:100, tax:5, deliveryFee:0, discount:0, totalAmount:105, paymentMethod:"online", paymentStatus:"paid", status:"cancelled", orderDate:new Date(Date.now()-60*60000).toISOString(), estimatedTime:"15 mins", specialInstructions:"", createdAt:new Date(Date.now()-60*60000).toISOString(), updatedAt:new Date().toISOString() },
-    { _id:"demo-co8", orderId:"ORD-CN-308", customerId:"student-5", customerName:"Arjun Mehta", customerRole:"student", customerEmail:"arjun@student.edu", customerPhone:"9867890123", canteenId:"canteen-demo", canteenName:"Campus Cafe", items:[{menuItemId:"m7",name:"Chicken Biryani",price:180,quantity:2,isVeg:false,isSpicy:true,prepTime:20},{menuItemId:"m13",name:"Fresh Lime Soda",price:40,quantity:2,isVeg:true,isSpicy:false,prepTime:3}], subtotal:440, tax:22, deliveryFee:0, discount:0, totalAmount:462, paymentMethod:"online", paymentStatus:"paid", status:"completed", orderDate:new Date(Date.now()-90*60000).toISOString(), estimatedTime:"25 mins", specialInstructions:"Extra raita", createdAt:new Date(Date.now()-90*60000).toISOString(), updatedAt:new Date().toISOString() },
-  ]
-  
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [canteenId, setCanteenId] = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [selectedRole, setSelectedRole] = useState("all")
@@ -112,18 +105,18 @@ export default function CanteenOrdersPage() {
   const fetchOrders = async () => {
     if (!canteenId) return
     setIsLoading(true)
+    setError(null)
     try {
       const response = await fetch(`/api/orders?canteenId=${canteenId}&limit=50`)
       const result = await response.json()
       if (response.ok) {
-        setOrders(result.data?.length ? result.data : demoOrders)
+        setOrders(result.data || [])
       } else {
-        console.error('Error fetching orders:', result.error)
-        setOrders(demoOrders)
+        throw new Error(result.error || "Failed to fetch orders")
       }
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-      setOrders(demoOrders)
+    } catch (err: any) {
+      console.error('Error fetching orders:', err)
+      setError(err.message || "Failed to load live data. The backend might be unreachable.")
     } finally {
       setIsLoading(false)
     }
@@ -134,17 +127,18 @@ export default function CanteenOrdersPage() {
       const response = await fetch('/api/orders', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, status, note })
+        body: JSON.stringify({ _id: orderId, status, specialInstructions: note })
       })
       const result = await response.json()
       if (response.ok) {
+        toast.success(`Order status updated to ${status}`)
         await fetchOrders()
       } else {
-        alert('Error updating order: ' + result.error)
+        toast.error('Error updating order: ' + result.error)
       }
     } catch (error) {
       console.error('Error updating order:', error)
-      alert('Error updating order. Please try again.')
+      toast.error('Error updating order. Please try again.')
     }
   }
 
@@ -292,6 +286,14 @@ export default function CanteenOrdersPage() {
         </header>
 
         <div className="p-8 max-w-[1600px] mx-auto">
+          {error && (
+            <Alert variant="destructive" className="mb-6 bg-red-500/10 border-red-500/50 text-red-500">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Connection Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           {/* Premium Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
             <Card className="bg-zinc-900/40 border-zinc-800/60 backdrop-blur-md hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300">

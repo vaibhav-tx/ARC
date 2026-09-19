@@ -125,22 +125,24 @@ export default function TeacherDashboardPage() {
       items: [{ name: "Sandwich" }, { name: "Tea" }],
     },
   ];
-  const demoTodayClasses: TodayClass[] = [
-    {
-      classroomId: "CS301",
-      subject: "Data Structures",
-      time: "9:00 AM",
-      room: "Room 301",
-      students: 48,
-    },
-    {
-      classroomId: "CS305",
-      subject: "Database Systems",
-      time: "11:00 AM",
-      room: "Room 205",
-      students: 42,
-    },
-  ];
+
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [todayClasses, setTodayClasses] = useState<TodayClass[]>([]);
+  const [foodOrders, setFoodOrders] = useState<FoodOrder[]>([]);
+  const [attendanceStats, setAttendanceStats] = useState<AttendanceStats>({
+    totalClasses: 0,
+    classesToday: 0,
+    studentsPresent: 0,
+    attendanceRate: 0,
+  });
+  const isDummyUser = currentUser?.email === "priya.verma@college.edu";
+
+  const displayClassrooms = classrooms;
+  const displayFoodOrders = foodOrders;
+  const displayTodayClasses = todayClasses;
 
   const attendanceTrendData = [
     { week: "Mon", sectionA: 88, sectionB: 91, sectionC: 85 },
@@ -156,25 +158,6 @@ export default function TeacherDashboardPage() {
     { name: "Average", value: 16, color: "#FBBF24" },
     { name: "Needs Improvement", value: 10, color: "#F87171" },
   ];
-
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
-  const [todayClasses, setTodayClasses] = useState<TodayClass[]>([]);
-  const [foodOrders, setFoodOrders] = useState<FoodOrder[]>([]);
-  const [attendanceStats, setAttendanceStats] = useState<AttendanceStats>({
-    totalClasses: 5,
-    classesToday: 2,
-    studentsPresent: 84,
-    attendanceRate: 93,
-  });
-  const isDummyUser = currentUser?.email === "priya.verma@college.edu";
-
-  const displayClassrooms = classrooms.length ? classrooms : (isDummyUser ? demoClassrooms : []);
-  const displayFoodOrders = foodOrders.length ? foodOrders : (isDummyUser ? demoFoodOrders : []);
-  const displayTodayClasses = todayClasses.length
-    ? todayClasses
-    : (isDummyUser ? demoTodayClasses : []);
 
   useEffect(() => {
     // Load current user
@@ -201,14 +184,17 @@ export default function TeacherDashboardPage() {
   const fetchClassrooms = async () => {
     try {
       const response = await fetch(
-        `/api/classrooms?teacherId=${currentUser._id || currentUser.id}`,
+        `/api/teacher/classrooms?teacherId=${currentUser._id || currentUser.id}`,
       );
       if (response.ok) {
         const data = await response.json();
         setClassrooms(data.classrooms || []);
+      } else {
+        throw new Error("Failed to load classrooms");
       }
-    } catch (error) {
-      console.error("Error fetching classrooms:", error);
+    } catch (err: any) {
+      console.error("Error fetching classrooms:", err);
+      setError("Failed to fetch classroom data.");
     }
   };
 
@@ -294,30 +280,43 @@ export default function TeacherDashboardPage() {
     });
   };
 
+  const getFirstName = () => {
+    return currentUser?.firstName || "Teacher";
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       <TeacherSidebar />
-      <main className="flex-1 overflow-auto bg-transparent">
-        <header className="bg-[rgba(255,255,255,0.06)] backdrop-blur-xl border border-white/10 shadow-[0_25px_80px_-40px_rgba(0,0,0,0.7)]">
-          <div className="px-8 py-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+      <main className="flex-1 overflow-auto">
+        {/* Header */}
+        <header className="bg-zinc-900/30 backdrop-blur-sm border-b border-zinc-800 sticky top-0 z-10 px-8 py-5">
+          <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-white">
-                Teacher Dashboard
+              <h1 className="text-2xl font-bold text-white">
+                Welcome back, {getFirstName()} 👋
               </h1>
-              <p className="text-slate-300 mt-2">
-                Welcome back, {currentUser?.firstName || "Teacher"}
+              <p className="text-zinc-500 text-sm mt-0.5">
+                Here is your overview for today.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5 text-slate-300" />
-              </Button>
+              <Badge className="bg-zinc-800 border-zinc-700 text-zinc-300 text-xs">
+                <Building className="h-3 w-3 mr-1 text-green-400" />
+                CS Dept
+              </Badge>
+              <Bell className="h-5 w-5 text-zinc-400 cursor-pointer hover:text-white transition-colors" />
               <UserMenu />
             </div>
           </div>
         </header>
 
-        <div className="p-8">
+        <div className="p-6 space-y-6 max-w-7xl mx-auto">
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+              <p className="text-red-400 text-sm flex-1">{error}</p>
+            </div>
+          )}
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="border-white/10">

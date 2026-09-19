@@ -8,10 +8,12 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
 import {
   User,
   Mail,
@@ -39,12 +41,14 @@ import {
   ExternalLink,
   CheckCircle,
   Hash,
-  UserCheck
+  UserCheck,
+  AlertCircle
 } from "lucide-react"
 
 export default function StudentSignupPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState("")
   const [availableClasses, setAvailableClasses] = useState<string[]>([])
   const [classDetails, setClassDetails] = useState<any[]>([])
   const [isLoadingClasses, setIsLoadingClasses] = useState(true)
@@ -191,13 +195,14 @@ export default function StudentSignupPage() {
   }
 
   const handleSubmit = async () => {
+    setErrorMsg("")
     const missing = requiredStudentFields.filter((k) => !((formData as any)[k] && String((formData as any)[k]).trim().length))
     if (missing.length) {
-      alert(`Please fill all fields: ${missing.join(', ')}`)
+      setErrorMsg(`Please fill all fields: ${missing.join(', ')}`)
       return
     }
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match')
+      setErrorMsg('Passwords do not match')
       return
     }
     setIsLoading(true)
@@ -211,14 +216,14 @@ export default function StudentSignupPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || 'Signup failed')
+        setErrorMsg(data.error || 'Signup failed')
         setIsLoading(false)
         return
       }
-      alert('Account created successfully! Please sign in with your credentials.')
+      toast.success('Account created successfully! Please sign in with your credentials.')
       window.location.href = '/login'
     } catch (e: any) {
-      alert('Network error')
+      setErrorMsg('Network error. Please try again.')
       setIsLoading(false)
     }
   }
@@ -717,6 +722,14 @@ export default function StudentSignupPage() {
           className="mb-8"
         >
           {renderStep()}
+
+          {errorMsg && (
+            <Alert variant="destructive" className="mt-6 bg-red-500/10 border-red-500/50 text-red-500">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Validation Error</AlertTitle>
+              <AlertDescription>{errorMsg}</AlertDescription>
+            </Alert>
+          )}
         </motion.div>
 
         <div className="flex justify-between">

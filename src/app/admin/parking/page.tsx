@@ -1,24 +1,105 @@
 "use client"
 
+import React, { useState, useEffect } from "react"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Car, CheckCircle, Clock, Search, Shield } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Car, CheckCircle, Clock, Search, Shield, Loader2, AlertCircle } from "lucide-react"
+import { toast } from "sonner"
+import { redirectIfNotAuthenticatedAdmin } from '@/lib/auth-middleware'
+
+interface ParkingRequest {
+  _id: string
+  user: string
+  role: string
+  vehicle: string
+  zone: string
+  requestedSlot: string
+  timeSlot: string
+  status: string
+}
+
+interface ParkingSlot {
+  zone: string
+  total: number
+  occupied: number
+}
 
 export default function AdminParkingPage() {
-  const requests = [
-    { id: "REQ-901", user: "Rahul Sharma", role: "student", vehicle: "BR01AB1234", zone: "Student Block A", requestedSlot: "Near Gate", timeSlot: "09:00 AM - 06:00 PM", status: "pending" },
-    { id: "REQ-902", user: "Priya Verma", role: "teacher", vehicle: "BR01CD5678", zone: "Faculty Parking", requestedSlot: "Covered Bay", timeSlot: "08:30 AM - 05:30 PM", status: "pending" },
-    { id: "REQ-903", user: "Amit Kumar", role: "student", vehicle: "BR01XY7788", zone: "Student Block B", requestedSlot: "B-10", timeSlot: "10:00 AM - 05:00 PM", status: "approved" },
-  ]
+  const [isPageLoading, setIsPageLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  const [requests, setRequests] = useState<ParkingRequest[]>([])
+  const [slots, setSlots] = useState<ParkingSlot[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const slots = [
-    { zone: "Student Block A", total: 120, occupied: 89 },
-    { zone: "Student Block B", total: 100, occupied: 64 },
-    { zone: "Faculty Parking", total: 60, occupied: 43 },
-  ]
+  useEffect(() => {
+    if (!redirectIfNotAuthenticatedAdmin()) {
+      return
+    }
+    loadParkingData()
+    setIsPageLoading(false)
+  }, [])
+
+  const loadParkingData = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const response = await fetch('/api/admin/parking')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to load parking data')
+      }
+
+      setRequests(data.requests || [])
+      setSlots(data.slots || [])
+    } catch (err: any) {
+      setError(err.message || 'Failed to connect to parking service')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    try {
+      const response = await fetch('/api/admin/parking', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id, status })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update request')
+      }
+
+      toast.success(`Request ${status} successfully`)
+      loadParkingData() // reload
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update status')
+    }
+  }
+
+  const filteredRequests = requests.filter(req => 
+    req.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    req.vehicle.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#e78a53]" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black flex">
@@ -38,6 +119,14 @@ export default function AdminParkingPage() {
         </header>
 
         <div className="p-8 space-y-8">
+          {error && (
+            <Alert variant="destructive" className="bg-red-500/10 border-red-500/50 text-red-500">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Connection Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {slots.map((slot) => (
               <Card key={slot.zone} className="bg-zinc-900/50 border-zinc-800">
@@ -60,37 +149,70 @@ export default function AdminParkingPage() {
                   Parking Requests
                 </CardTitle>
                 <div className="flex items-center gap-2">
-                  <Input placeholder="Search by user/vehicle..." className="w-64 bg-zinc-800/50 border-zinc-700 text-white" />
-                  <Button variant="outline" className="border-zinc-700 text-zinc-300">
-                    <Search className="h-4 w-4 mr-1" />
+                  <Input 
+                    placeholder="Search by user/vehicle..." 
+                    className="w-64 bg-zinc-800/50 border-zinc-700 text-white" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Button 
+                    variant="outline" 
+                    className="border-zinc-700 text-zinc-300"
+                    onClick={loadParkingData}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Search className="h-4 w-4 mr-1" />}
                     Search
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {requests.map((request) => (
-                <div key={request.id} className="p-4 bg-zinc-800/40 rounded-lg flex items-center justify-between">
-                  <div>
+              {filteredRequests.length === 0 ? (
+                <div className="text-center py-8 text-zinc-500">
+                  No parking requests found
+                </div>
+              ) : (
+                filteredRequests.map((request) => (
+                  <div key={request._id} className="p-4 bg-zinc-800/40 rounded-lg flex items-center justify-between">
+                    <div>
                     <p className="text-white font-medium">{request.user} <span className="text-zinc-500 text-sm">({request.role})</span></p>
                     <p className="text-zinc-400 text-sm">{request.vehicle} - {request.zone}</p>
                     <p className="text-zinc-500 text-xs">Slot: {request.requestedSlot} | Time: {request.timeSlot}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={request.status === "approved" ? "bg-green-500/10 text-green-400 border-green-500/30" : "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"}>
-                      {request.status}
-                    </Badge>
-                    <Button size="sm" className="bg-[#e78a53] hover:bg-[#e78a53]/90">
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Approve
-                    </Button>
-                    <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-300">
-                      <Clock className="h-4 w-4 mr-1" />
-                      Hold
-                    </Button>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={
+                        request.status === "approved" ? "bg-green-500/10 text-green-400 border-green-500/30" : 
+                        request.status === "rejected" ? "bg-red-500/10 text-red-400 border-red-500/30" :
+                        "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                      }>
+                        {request.status}
+                      </Badge>
+                      {request.status === 'pending' && (
+                        <>
+                          <Button 
+                            size="sm" 
+                            className="bg-[#e78a53] hover:bg-[#e78a53]/90"
+                            onClick={() => handleUpdateStatus(request._id, 'approved')}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Approve
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                            onClick={() => handleUpdateStatus(request._id, 'rejected')}
+                          >
+                            <Clock className="h-4 w-4 mr-1" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
                 </div>
-              ))}
+              ))
+            )}
             </CardContent>
           </Card>
         </div>

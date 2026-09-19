@@ -9,16 +9,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import { toast } from "sonner"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("rahul.sharma@student.edu")
   const [password, setPassword] = useState("Password@123")
   const [role, setRole] = useState<'student' | 'teacher' | 'canteen'>('student')
   const [isLoading, setIsLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setErrorMsg("")
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
@@ -27,13 +32,14 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || 'Login failed')
+        setErrorMsg(data.error || 'Login failed')
         setIsLoading(false)
         return
       }
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('userRole', role)
       localStorage.setItem('currentUser', JSON.stringify(data))
+      toast.success("Login successful")
       const dashboardUrls = {
         student: '/student/dashboard',
         teacher: '/teacher/dashboard',
@@ -41,7 +47,7 @@ export default function LoginPage() {
       }
       window.location.href = dashboardUrls[role]
     } catch (err) {
-      alert('Network error')
+      setErrorMsg('Network error. Please try again.')
       setIsLoading(false)
     }
   }
@@ -87,6 +93,14 @@ export default function LoginPage() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8"
         >
+          {errorMsg && (
+            <Alert variant="destructive" className="mb-6 bg-red-500/10 border-red-500/50 text-red-500">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Login Failed</AlertTitle>
+              <AlertDescription>{errorMsg}</AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-white">

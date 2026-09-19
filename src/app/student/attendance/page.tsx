@@ -17,7 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/hooks/use-toast";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 import {
   UserCheck,
   Calendar,
@@ -198,11 +199,7 @@ export default function StudentAttendancePage() {
     } catch (error: any) {
       console.error("[FETCH_ATTENDANCE_ERROR]", error);
       setError(error.message || "An unexpected error occurred.");
-      toast({
-         title: "Error",
-         description: "Failed to load attendance data",
-         variant: "destructive"
-      });
+      toast.error("Failed to load attendance data");
       setAttendanceRecords([]);
       setStatistics(null);
     } finally {
@@ -280,12 +277,12 @@ export default function StudentAttendancePage() {
               <p className="text-zinc-400 mt-2">Loading...</p>
             </div>
           ) : error ? (
-            <div className="flex flex-col items-center justify-center py-12 bg-red-500/5 border border-red-500/20 rounded-xl">
-               <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
-               <h3 className="text-xl font-semibold text-red-400 mb-2">Failed to load data</h3>
-               <p className="text-zinc-400">{error}</p>
-               <Button onClick={() => fetchAttendanceData(selectedClassroom)} variant="outline" className="mt-6 border-zinc-700 text-zinc-300 hover:text-white">Retry Connection</Button>
-            </div>
+            <Alert variant="destructive" className="bg-red-500/10 border-red-500/50 text-red-500 mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Connection Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+              <Button onClick={() => fetchAttendanceData(selectedClassroom)} variant="outline" className="mt-4 border-red-500/50 text-red-400 hover:bg-red-500/10">Retry Connection</Button>
+            </Alert>
           ) : (
             <>
               {/* Controls */}

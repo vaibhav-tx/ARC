@@ -28,8 +28,10 @@ export default function AdminDashboard() {
     resources: 0,
     internships: 0,
     parkingRequests: 0,
+    parkingRequests: 0,
     totalEntities: 0
   })
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -49,22 +51,39 @@ export default function AdminDashboard() {
   }, [])
 
   const loadStats = async (admin: any) => {
-    // In a real app, you would fetch actual statistics from APIs
-    // For now, we'll use placeholder data
-    const isDummyUser = admin?.username?.toUpperCase() === 'ADMIN1'
-    setStats(isDummyUser ? {
-      events: 12,
-      resources: 25,
-      internships: 8,
-      parkingRequests: 14,
-      totalEntities: 59
-    } : {
-      events: 0,
-      resources: 0,
-      internships: 0,
-      parkingRequests: 0,
-      totalEntities: 0
-    })
+    try {
+      setIsLoading(true)
+      
+      const [eventsRes, resourcesRes, internshipsRes, parkingRes] = await Promise.all([
+        fetch('/api/admin/events').catch(() => null),
+        fetch('/api/admin/resources').catch(() => null),
+        fetch('/api/admin/internships').catch(() => null),
+        fetch('/api/admin/parking').catch(() => null)
+      ])
+
+      const eventsData = eventsRes?.ok ? await eventsRes.json() : { events: [] }
+      const resourcesData = resourcesRes?.ok ? await resourcesRes.json() : { resources: [] }
+      const internshipsData = internshipsRes?.ok ? await internshipsRes.json() : { internships: [] }
+      const parkingData = parkingRes?.ok ? await parkingRes.json() : { requests: [] }
+
+      const eventsCount = eventsData.events?.length || 0
+      const resourcesCount = resourcesData.resources?.length || 0
+      const internshipsCount = internshipsData.internships?.length || 0
+      const parkingCount = parkingData.requests?.length || 0
+
+      setStats({
+        events: eventsCount,
+        resources: resourcesCount,
+        internships: internshipsCount,
+        parkingRequests: parkingCount,
+        totalEntities: eventsCount + resourcesCount + internshipsCount + parkingCount
+      })
+    } catch (err: any) {
+      console.error('Failed to load dashboard stats:', err)
+      // We don't block the UI for stats, just fail gracefully
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (isPageLoading) {

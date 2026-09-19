@@ -14,8 +14,9 @@ import {
 import {
   Upload, BookOpen, FileText, Presentation, ClipboardList,
   Search, Trash2, Download, Eye, Plus, Clock, Users,
-  ChevronRight, CheckCircle
+  ChevronRight, CheckCircle, AlertCircle
 } from "lucide-react"
+import { toast } from "sonner"
 
 interface Resource {
   _id: string
@@ -38,60 +39,7 @@ const categoryMeta = {
   reference:  { label: "Reference",  icon: FileText,      color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20"  },
 }
 
-const mockResources: Resource[] = [
-  {
-    _id: "mock-res-001",
-    title: "Data Structures Notes - Unit 1",
-    subject: "CS301 — Data Structures",
-    description: "Comprehensive notes covering arrays, linked lists, stacks, and queues with examples and diagrams.",
-    content: "# Unit 1: Linear Data Structures\n\n## Arrays\n- Static vs Dynamic arrays\n- Time complexity of operations\n\n## Linked Lists\n- Singly, Doubly, Circular\n\n## Stacks & Queues\n- Implementation and applications",
-    category: "notes",
-    postedBy: "teacher-priya-001",
-    postedByName: "Priya Verma",
-    fileSize: "2.4 MB",
-    downloads: 142,
-    createdAt: "2025-01-10T09:30:00.000Z",
-  },
-  {
-    _id: "mock-res-002",
-    title: "DBMS ER Diagram Slides",
-    subject: "CS401 — Database Management Systems",
-    description: "Slide deck covering ER model concepts, cardinality, participation constraints, and extended ER features.",
-    content: "# ER Diagram Slides\n\n- Entity & Attribute types\n- Relationships & Cardinality\n- Weak entities\n- Extended ER: Specialization & Generalization\n- Mapping ER to Relational Schema",
-    category: "slides",
-    postedBy: "teacher-priya-001",
-    postedByName: "Priya Verma",
-    fileSize: "5.1 MB",
-    downloads: 98,
-    createdAt: "2025-01-15T14:00:00.000Z",
-  },
-  {
-    _id: "mock-res-003",
-    title: "DSA Assignment 3",
-    subject: "CS301 — Data Structures",
-    description: "Assignment on binary trees, BST operations, and tree traversal algorithms. Due by end of January.",
-    content: "# Assignment 3: Trees\n\n1. Implement a BST with insert, delete, and search.\n2. Write iterative in-order traversal.\n3. Find the height of a binary tree.\n4. Check if a tree is balanced.\n\n**Submission deadline:** 31 Jan 2025",
-    category: "assignment",
-    postedBy: "teacher-priya-001",
-    postedByName: "Priya Verma",
-    fileSize: "1.2 MB",
-    downloads: 210,
-    createdAt: "2025-01-18T11:15:00.000Z",
-  },
-  {
-    _id: "mock-res-004",
-    title: "Algorithm Analysis Reference",
-    subject: "CS301 — Data Structures",
-    description: "Quick-reference guide for asymptotic notations, Master theorem, and common algorithm complexities.",
-    content: "# Algorithm Analysis Reference\n\n## Asymptotic Notations\n- Big-O, Omega, Theta\n\n## Master Theorem\n- T(n) = aT(n/b) + f(n)\n\n## Common Complexities\n- Sorting: O(n log n)\n- Binary Search: O(log n)\n- Graph BFS/DFS: O(V + E)",
-    category: "reference",
-    postedBy: "teacher-priya-001",
-    postedByName: "Priya Verma",
-    fileSize: "0.8 MB",
-    downloads: 76,
-    createdAt: "2025-01-22T16:45:00.000Z",
-  },
-]
+
 
 export default function TeacherResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([])
@@ -108,23 +56,32 @@ export default function TeacherResourcesPage() {
     title: "", subject: "", description: "", content: "", category: "notes" as Resource["category"],
   })
 
+  const [error, setError] = useState<string | null>(null)
+
   useEffect(() => {
     try {
       const u = localStorage.getItem("currentUser")
-      if (u) setCurrentUser(JSON.parse(u))
+      if (u) {
+        const parsed = JSON.parse(u)
+        setCurrentUser(parsed)
+        fetchResources(parsed._id || parsed.id)
+      }
     } catch {}
-    fetchResources()
   }, [])
 
-  const fetchResources = async () => {
+  const fetchResources = async (tid?: string) => {
     setLoading(true)
+    setError(null)
+    const targetId = tid || currentUser?._id || currentUser?.id
     try {
-      const res = await fetch("/api/teacher/resources")
+      const res = await fetch(`/api/teacher/resources?teacherId=${targetId}`)
+      if (!res.ok) throw new Error("Failed to load resources.")
       const data = await res.json()
-      const fetched = data.resources || []
-      setResources(fetched.length > 0 ? fetched : mockResources)
-    } catch {
-      setResources(mockResources)
+      setResources(data.resources || [])
+    } catch (err: any) {
+      console.error("[FETCH_RESOURCES_ERROR]", err)
+      setError("System outage. Failed to connect to backend resources server.")
+      setResources([])
     } finally {
       setLoading(false)
     }
@@ -145,18 +102,32 @@ export default function TeacherResourcesPage() {
       })
       if (res.ok) {
         setSuccess(true)
+        toast.success("Resource created successfully")
         setForm({ title: "", subject: "", description: "", content: "", category: "notes" })
         fetchResources()
         setTimeout(() => { setSuccess(false); setShowForm(false) }, 1500)
+      } else {
+        toast.error("Failed to create resource")
       }
+    } catch (error) {
+      toast.error("Network error occurred")
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleDelete = async (id: string) => {
-    await fetch(`/api/teacher/resources?id=${id}`, { method: "DELETE" })
-    setResources(r => r.filter(x => x._id !== id))
+    try {
+      const res = await fetch(`/api/teacher/resources?id=${id}`, { method: "DELETE" })
+      if (res.ok) {
+        setResources(r => r.filter(x => x._id !== id))
+        toast.success("Resource deleted successfully")
+      } else {
+        toast.error("Failed to delete resource")
+      }
+    } catch (err) {
+      toast.error("Network error occurred")
+    }
   }
 
   const filtered = resources.filter(r => {
@@ -188,93 +159,107 @@ export default function TeacherResourcesPage() {
           </div>
         </header>
 
-        <div className="p-6 space-y-5">
+        <div className="p-8 max-w-7xl mx-auto space-y-8">
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { label: "Total Posted",    value: resources.length,                                        color: "text-blue-400",   bg: "bg-blue-500/10",   icon: Upload    },
-              { label: "Notes",           value: resources.filter(r=>r.category==="notes").length,        color: "text-blue-400",   bg: "bg-blue-500/10",   icon: BookOpen  },
-              { label: "Assignments",     value: resources.filter(r=>r.category==="assignment").length,   color: "text-yellow-400", bg: "bg-yellow-500/10", icon: ClipboardList },
-              { label: "Total Downloads", value: totalDownloads,                                          color: "text-green-400",  bg: "bg-green-500/10",  icon: Download  },
-            ].map(s => {
-              const Icon = s.icon
-              return (
-                <Card key={s.label} className="bg-zinc-900/60 border-zinc-800">
-                  <CardContent className="p-5 flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${s.bg}`}><Icon className={`h-5 w-5 ${s.color}`} /></div>
-                    <div>
-                      <p className="text-2xl font-bold text-white">{s.value}</p>
-                      <p className="text-zinc-400 text-sm">{s.label}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-
-          {/* Search + Filter */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-              <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search resources..." className="pl-10 bg-zinc-900/60 border-zinc-700 text-white placeholder-zinc-500" />
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {["all", "notes", "slides", "assignment", "reference"].map(c => (
-                <button key={c} onClick={() => setCatFilter(c)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${catFilter === c ? "bg-[#e78a53]/20 text-[#e78a53] border border-[#e78a53]/30" : "bg-zinc-800/60 text-zinc-400 border border-zinc-700 hover:text-white"}`}>
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Resources grid */}
-          {loading ? (
-            <div className="text-center py-16"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#e78a53] mx-auto" /></div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <BookOpen className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-              <p className="text-zinc-400">No resources found</p>
-              <Button onClick={() => setShowForm(true)} className="mt-4 bg-[#e78a53] hover:bg-[#e78a53]/90 gap-1"><Plus className="h-4 w-4" /> Post first resource</Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map(r => {
-                const meta = categoryMeta[r.category]
-                const Icon = meta.icon
-                return (
-                  <Card key={r._id} className="bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 transition-all flex flex-col">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <Badge className={`${meta.bg} ${meta.color} ${meta.border} border text-xs gap-1`}>
-                          <Icon className="h-3 w-3" />{meta.label}
-                        </Badge>
-                        <span className="text-zinc-600 text-[10px]">{fmt(r.createdAt)}</span>
-                      </div>
-                      <CardTitle className="text-white text-base leading-snug mt-2">{r.title}</CardTitle>
-                      <p className="text-zinc-400 text-xs">{r.subject}</p>
-                    </CardHeader>
-                    <CardContent className="pt-0 flex-1 flex flex-col justify-between gap-3">
-                      <p className="text-zinc-500 text-xs line-clamp-2">{r.description || "No description provided."}</p>
-                      <div className="flex items-center justify-between text-xs text-zinc-500">
-                        <span className="flex items-center gap-1"><Users className="h-3 w-3" />{r.postedByName}</span>
-                        <span className="flex items-center gap-1"><Download className="h-3 w-3 text-green-400" />{r.downloads} downloads</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setPreview(r)} className="flex-1 border-zinc-700 text-zinc-300 hover:text-white text-xs gap-1">
-                          <Eye className="h-3.5 w-3.5" /> Preview
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDelete(r._id)} className="border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs gap-1">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
+          {error && (
+            <div className="flex flex-col items-center justify-center py-12 bg-red-500/5 border border-red-500/20 rounded-xl">
+               <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
+               <h3 className="text-xl font-semibold text-red-400 mb-2">Failed to load data</h3>
+               <p className="text-zinc-400">{error}</p>
+               <Button onClick={() => fetchResources()} variant="outline" className="mt-6 border-zinc-700 text-zinc-300 hover:text-white">Retry Connection</Button>
             </div>
           )}
+
+          {!error && (
+            <>
+              {/* Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: "Total Posted",    value: resources.length,                                        color: "text-blue-400",   bg: "bg-blue-500/10",   icon: Upload    },
+                  { label: "Notes",           value: resources.filter(r=>r.category==="notes").length,        color: "text-blue-400",   bg: "bg-blue-500/10",   icon: BookOpen  },
+                  { label: "Assignments",     value: resources.filter(r=>r.category==="assignment").length,   color: "text-yellow-400", bg: "bg-yellow-500/10", icon: ClipboardList },
+                  { label: "Total Downloads", value: totalDownloads,                                          color: "text-green-400",  bg: "bg-green-500/10",  icon: Download  },
+                ].map(s => {
+                  const Icon = s.icon
+                  return (
+                    <Card key={s.label} className="bg-zinc-900/60 border-zinc-800">
+                      <CardContent className="p-5 flex items-center gap-3">
+                        <div className={`p-2.5 rounded-xl ${s.bg}`}><Icon className={`h-5 w-5 ${s.color}`} /></div>
+                        <div>
+                          <p className="text-2xl font-bold text-white">{s.value}</p>
+                          <p className="text-zinc-400 text-sm">{s.label}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+
+              {/* Search + Filter */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                  <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search resources..." className="pl-10 bg-zinc-900/60 border-zinc-700 text-white placeholder-zinc-500" />
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {["all", "notes", "slides", "assignment", "reference"].map(c => (
+                    <button key={c} onClick={() => setCatFilter(c)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${catFilter === c ? "bg-[#e78a53]/20 text-[#e78a53] border border-[#e78a53]/30" : "bg-zinc-800/60 text-zinc-400 border border-zinc-700 hover:text-white"}`}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Resources grid */}
+              {loading ? (
+                <div className="text-center py-16"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#e78a53] mx-auto" /></div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-16">
+                  <BookOpen className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
+                  <p className="text-zinc-400">No resources found</p>
+                  <Button onClick={() => setShowForm(true)} className="mt-4 bg-[#e78a53] hover:bg-[#e78a53]/90 gap-1"><Plus className="h-4 w-4" /> Post first resource</Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filtered.map(r => {
+                    const meta = categoryMeta[r.category]
+                    const Icon = meta.icon
+                    return (
+                      <Card key={r._id} className="bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 transition-all flex flex-col">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <Badge className={`${meta.bg} ${meta.color} ${meta.border} border text-xs gap-1`}>
+                              <Icon className="h-3 w-3" />{meta.label}
+                            </Badge>
+                            <span className="text-zinc-600 text-[10px]">{fmt(r.createdAt)}</span>
+                          </div>
+                          <CardTitle className="text-white text-base leading-snug mt-2">{r.title}</CardTitle>
+                          <p className="text-zinc-400 text-xs">{r.subject}</p>
+                        </CardHeader>
+                        <CardContent className="pt-0 flex-1 flex flex-col justify-between gap-3">
+                          <p className="text-zinc-500 text-xs line-clamp-2">{r.description || "No description provided."}</p>
+                          <div className="flex items-center justify-between text-xs text-zinc-500">
+                            <span className="flex items-center gap-1"><Users className="h-3 w-3" />{r.postedByName}</span>
+                            <span className="flex items-center gap-1"><Download className="h-3 w-3 text-green-400" />{r.downloads} downloads</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => setPreview(r)} className="flex-1 border-zinc-700 text-zinc-300 hover:text-white text-xs gap-1">
+                              <Eye className="h-3.5 w-3.5" /> Preview
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => handleDelete(r._id)} className="border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs gap-1">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
         </div>
       </main>
 
