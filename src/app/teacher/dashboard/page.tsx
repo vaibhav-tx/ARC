@@ -168,11 +168,13 @@ export default function TeacherDashboardPage() {
     studentsPresent: 84,
     attendanceRate: 93,
   });
-  const displayClassrooms = classrooms.length ? classrooms : demoClassrooms;
-  const displayFoodOrders = foodOrders.length ? foodOrders : demoFoodOrders;
+  const isDummyUser = currentUser?.email === "priya.verma@college.edu";
+
+  const displayClassrooms = classrooms.length ? classrooms : (isDummyUser ? demoClassrooms : []);
+  const displayFoodOrders = foodOrders.length ? foodOrders : (isDummyUser ? demoFoodOrders : []);
   const displayTodayClasses = todayClasses.length
     ? todayClasses
-    : demoTodayClasses;
+    : (isDummyUser ? demoTodayClasses : []);
 
   useEffect(() => {
     // Load current user
@@ -231,9 +233,9 @@ export default function TeacherDashboardPage() {
       // For now, use mock data - replace with actual API call when available
       setAttendanceStats({
         totalClasses: classrooms.length,
-        classesToday: 3,
-        studentsPresent: 85,
-        attendanceRate: 92,
+        classesToday: isDummyUser ? 3 : 0,
+        studentsPresent: isDummyUser ? 85 : 0,
+        attendanceRate: isDummyUser ? 92 : 0,
       });
     } catch (error) {
       console.error("Error fetching attendance stats:", error);
@@ -243,7 +245,7 @@ export default function TeacherDashboardPage() {
   const fetchTodaySchedule = async () => {
     try {
       // Mock data for today's classes - replace with actual API call
-      const mockTodayClasses = [
+      const mockTodayClasses = isDummyUser ? [
         {
           classroomId: "CS101",
           subject: "Data Structures",
@@ -265,7 +267,7 @@ export default function TeacherDashboardPage() {
           room: "Room 205",
           students: 38,
         },
-      ];
+      ] : [];
       setTodayClasses(mockTodayClasses);
     } catch (error) {
       console.error("Error fetching today schedule:", error);
@@ -395,7 +397,7 @@ export default function TeacherDashboardPage() {
                 <div className="h-[320px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
-                      data={attendanceTrendData}
+                      data={isDummyUser ? attendanceTrendData : []}
                       margin={{ top: 16, right: 24, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid
@@ -466,7 +468,7 @@ export default function TeacherDashboardPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={performanceData}
+                        data={isDummyUser ? performanceData : []}
                         dataKey="value"
                         nameKey="name"
                         innerRadius={70}
@@ -784,32 +786,39 @@ export default function TeacherDashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                      <p className="text-yellow-400 text-sm font-medium">
-                        Submit attendance report
-                      </p>
-                      <p className="text-slate-300 text-xs mt-1">
-                        Due tomorrow
-                      </p>
+                  {isDummyUser ? (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                        <p className="text-yellow-400 text-sm font-medium">
+                          Submit attendance report
+                        </p>
+                        <p className="text-slate-300 text-xs mt-1">
+                          Due tomorrow
+                        </p>
+                      </div>
+                      <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <p className="text-blue-400 text-sm font-medium">
+                          Parent-teacher meeting
+                        </p>
+                        <p className="text-slate-300 text-xs mt-1">
+                          Friday, 3:00 PM
+                        </p>
+                      </div>
+                      <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                        <p className="text-green-400 text-sm font-medium">
+                          Grade assignments
+                        </p>
+                        <p className="text-slate-300 text-xs mt-1">
+                          3 days remaining
+                        </p>
+                      </div>
                     </div>
-                    <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                      <p className="text-blue-400 text-sm font-medium">
-                        Parent-teacher meeting
-                      </p>
-                      <p className="text-slate-300 text-xs mt-1">
-                        Friday, 3:00 PM
-                      </p>
+                  ) : (
+                    <div className="text-center py-4">
+                      <AlertCircle className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+                      <p className="text-slate-300 text-sm">No upcoming tasks</p>
                     </div>
-                    <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                      <p className="text-green-400 text-sm font-medium">
-                        Grade assignments
-                      </p>
-                      <p className="text-slate-300 text-xs mt-1">
-                        3 days remaining
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

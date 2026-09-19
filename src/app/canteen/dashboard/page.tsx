@@ -36,41 +36,43 @@ export default function CanteenDashboard() {
   }, [])
   const userId = currentUser?.id ?? null
   const userName = currentUser?.name ?? ""
-  const todaysStats = {
+  const isDummyUser = currentUser?.email === "sanjay.canteen@campus.in"
+
+  const todaysStats = isDummyUser ? {
     revenue: 15420,
     orders: 89,
     customers: 67,
     avgOrderValue: 173
-  }
+  } : { revenue: 0, orders: 0, customers: 0, avgOrderValue: 0 }
 
-  const weeklyStats = {
+  const weeklyStats = isDummyUser ? {
     revenue: 98500,
     orders: 542,
     customers: 389,
     avgOrderValue: 182
-  }
+  } : { revenue: 0, orders: 0, customers: 0, avgOrderValue: 0 }
 
-  const monthlyStats = {
+  const monthlyStats = isDummyUser ? {
     revenue: 425000,
     orders: 2340,
     customers: 1456,
     avgOrderValue: 181
-  }
+  } : { revenue: 0, orders: 0, customers: 0, avgOrderValue: 0 }
 
-  const recentOrders = [
+  const recentOrders = isDummyUser ? [
     { id: "#ORD-2024-0089", customer: "Rohit Sharma", amount: 245, status: "completed", time: "2 min ago", items: ["Chicken Biryani", "Fresh Lime Soda"] },
     { id: "#ORD-2024-0088", customer: "Prof. Priya Verma", amount: 95, status: "preparing", time: "5 min ago", items: ["Paneer Butter Masala"] },
     { id: "#ORD-2024-0087", customer: "Amit Kumar", amount: 165, status: "completed", time: "8 min ago", items: ["Masala Dosa", "Samosa x2"] },
     { id: "#ORD-2024-0086", customer: "Sneha Patel", amount: 75, status: "preparing", time: "12 min ago", items: ["Chole Bhature"] },
     { id: "#ORD-2024-0085", customer: "Arjun Mehta", amount: 320, status: "completed", time: "15 min ago", items: ["Chicken Biryani x2", "Fresh Lime Soda"] }
-  ]
+  ] : []
 
-  const lowStockItems = [
+  const lowStockItems = isDummyUser ? [
     { name: "Basmati Rice", current: "2.5 kg", minimum: "10 kg", status: "critical" },
     { name: "Chicken", current: "5 kg", minimum: "15 kg", status: "low" },
     { name: "Paneer", current: "3 kg", minimum: "8 kg", status: "low" },
     { name: "Onions", current: "8 kg", minimum: "20 kg", status: "low" }
-  ]
+  ] : []
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -136,7 +138,7 @@ export default function CanteenDashboard() {
                       <p className="text-zinc-400 text-sm">Today's Revenue</p>
                       <div className="flex items-center gap-1 text-[#e78a53] text-xs mt-1">
                         <ArrowUp className="h-3 w-3" />
-                        <span>+12.5%</span>
+                        <span>{isDummyUser ? "+12.5%" : "0%"}</span>
                       </div>
                     </div>
                   </div>
@@ -154,7 +156,7 @@ export default function CanteenDashboard() {
                       <p className="text-zinc-400 text-sm">Orders Today</p>
                       <div className="flex items-center gap-1 text-[#e78a53] text-xs mt-1">
                         <ArrowUp className="h-3 w-3" />
-                        <span>+8.2%</span>
+                        <span>{isDummyUser ? "+8.2%" : "0%"}</span>
                       </div>
                     </div>
                   </div>
@@ -172,7 +174,7 @@ export default function CanteenDashboard() {
                       <p className="text-zinc-400 text-sm">Unique Customers</p>
                       <div className="flex items-center gap-1 text-[#e78a53] text-xs mt-1">
                         <ArrowUp className="h-3 w-3" />
-                        <span>+5.7%</span>
+                        <span>{isDummyUser ? "+5.7%" : "0%"}</span>
                       </div>
                     </div>
                   </div>
@@ -188,9 +190,9 @@ export default function CanteenDashboard() {
                     <div>
                       <p className="text-2xl font-bold text-white">₹{todaysStats.avgOrderValue}</p>
                       <p className="text-zinc-400 text-sm">Avg Order Value</p>
-                      <div className="flex items-center gap-1 text-red-400 text-xs mt-1">
-                        <ArrowDown className="h-3 w-3" />
-                        <span>-2.1%</span>
+                      <div className={`flex items-center gap-1 text-xs mt-1 ${isDummyUser ? "text-red-400" : "text-zinc-400"}`}>
+                        {isDummyUser ? <ArrowDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                        <span>{isDummyUser ? "-2.1%" : "0%"}</span>
                       </div>
                     </div>
                   </div>
@@ -286,30 +288,37 @@ export default function CanteenDashboard() {
                 <CardTitle className="text-white">Recent Orders</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentOrders.map((order) => (
-                    <div key={order.id} className="p-4 bg-zinc-800/30 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="text-white font-medium">{order.id}</p>
-                          <p className="text-zinc-400 text-sm">{order.customer}</p>
+                {recentOrders.length > 0 ? (
+                  <div className="space-y-4">
+                    {recentOrders.map((order) => (
+                      <div key={order.id} className="p-4 bg-zinc-800/30 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <p className="text-white font-medium">{order.id}</p>
+                            <p className="text-zinc-400 text-sm">{order.customer}</p>
+                          </div>
+                          <Badge className={getStatusColor(order.status)}>
+                            {order.status}
+                          </Badge>
                         </div>
-                        <Badge className={getStatusColor(order.status)}>
-                          {order.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-zinc-300 text-sm">
-                            {order.items.join(", ")}
-                          </p>
-                          <p className="text-zinc-500 text-xs">{order.time}</p>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-zinc-300 text-sm">
+                              {order.items.join(", ")}
+                            </p>
+                            <p className="text-zinc-500 text-xs">{order.time}</p>
+                          </div>
+                          <p className="text-[#e78a53] font-semibold">₹{order.amount}</p>
                         </div>
-                        <p className="text-[#e78a53] font-semibold">₹{order.amount}</p>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <ShoppingCart className="h-12 w-12 text-zinc-500 mx-auto mb-4" />
+                    <p className="text-zinc-400">No recent orders</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -319,32 +328,39 @@ export default function CanteenDashboard() {
                 <CardTitle className="text-white">Stock Alerts</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {lowStockItems.map((item, index) => (
-                    <div key={index} className="p-4 bg-zinc-800/30 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="text-white font-medium">{item.name}</p>
-                          <p className="text-zinc-400 text-sm">Current: {item.current}</p>
+                {lowStockItems.length > 0 ? (
+                  <div className="space-y-4">
+                    {lowStockItems.map((item, index) => (
+                      <div key={index} className="p-4 bg-zinc-800/30 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <p className="text-white font-medium">{item.name}</p>
+                            <p className="text-zinc-400 text-sm">Current: {item.current}</p>
+                          </div>
+                          <Badge className={getStockStatusColor(item.status)}>
+                            {item.status === 'critical' ? (
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                            ) : (
+                              <Package className="h-3 w-3 mr-1" />
+                            )}
+                            {item.status}
+                          </Badge>
                         </div>
-                        <Badge className={getStockStatusColor(item.status)}>
-                          {item.status === 'critical' ? (
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                          ) : (
-                            <Package className="h-3 w-3 mr-1" />
-                          )}
-                          {item.status}
-                        </Badge>
+                        <div className="flex items-center justify-between">
+                          <p className="text-zinc-500 text-sm">Minimum: {item.minimum}</p>
+                          <Button size="sm" className="bg-[#e78a53] hover:bg-[#e78a53]/90">
+                            Re-stock
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-zinc-500 text-sm">Minimum: {item.minimum}</p>
-                        <Button size="sm" className="bg-[#e78a53] hover:bg-[#e78a53]/90">
-                          Re-stock
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-12 w-12 text-zinc-500 mx-auto mb-4" />
+                    <p className="text-zinc-400">All stock levels look good!</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

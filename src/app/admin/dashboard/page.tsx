@@ -44,19 +44,26 @@ export default function AdminDashboard() {
     }
     
     setCurrentAdmin(adminInfo)
-    loadStats()
+    loadStats(adminInfo)
     setIsPageLoading(false)
   }, [])
 
-  const loadStats = async () => {
+  const loadStats = async (admin: any) => {
     // In a real app, you would fetch actual statistics from APIs
     // For now, we'll use placeholder data
-    setStats({
+    const isDummyUser = admin?.username?.toUpperCase() === 'ADMIN1'
+    setStats(isDummyUser ? {
       events: 12,
       resources: 25,
       internships: 8,
       parkingRequests: 14,
       totalEntities: 59
+    } : {
+      events: 0,
+      resources: 0,
+      internships: 0,
+      parkingRequests: 0,
+      totalEntities: 0
     })
   }
 

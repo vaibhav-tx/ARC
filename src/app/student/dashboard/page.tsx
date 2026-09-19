@@ -118,6 +118,8 @@ export default function StudentDashboard() {
     return "Rohit Sharma"
   })()
 
+  const isDummyUser = currentUser?.email === "rahul.sharma@student.edu";
+
   return (
     <div className="min-h-screen bg-black flex">
       <StudentSidebar />
@@ -145,12 +147,12 @@ export default function StudentDashboard() {
 
           {/* KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            <KPI icon={CheckCircle}  label="Avg Attendance"    value="87%"  sub="This semester"         trend="+5%"   up color="text-green-400"  bg="bg-green-500/10"  />
-            <KPI icon={Calendar}     label="Events Registered" value={5}    sub="2 upcoming"             trend="+2"    up color="text-blue-400"   bg="bg-blue-500/10"   />
-            <KPI icon={IndianRupee}  label="Fees Due"          value="₹50k" sub="Sem 7"                 trend="Action" up={false} color="text-red-400"   bg="bg-red-500/10"   />
-            <KPI icon={ShoppingBag}  label="Food Orders"       value={18}   sub="This month"             trend="+6"    up color="text-[#e78a53]"  bg="bg-[#e78a53]/10"  />
-            <KPI icon={Briefcase}    label="Applications"      value={3}    sub="1 under review"         trend="+1"    up color="text-purple-400" bg="bg-purple-500/10" />
-            <KPI icon={BookOpen}     label="Resources"         value={7}    sub="3 downloaded this week" trend="+3"    up color="text-teal-400"   bg="bg-teal-500/10"   />
+            <KPI icon={CheckCircle}  label="Avg Attendance"    value={isDummyUser ? "87%" : "0%"}  sub="This semester"         trend={isDummyUser ? "+5%" : "0%"}   up color="text-green-400"  bg="bg-green-500/10"  />
+            <KPI icon={Calendar}     label="Events Registered" value={isDummyUser ? 5 : 0}    sub={isDummyUser ? "2 upcoming" : "0 upcoming"}             trend={isDummyUser ? "+2" : "0"}    up color="text-blue-400"   bg="bg-blue-500/10"   />
+            <KPI icon={IndianRupee}  label="Fees Due"          value={isDummyUser ? "₹50k" : "₹0"} sub={isDummyUser ? "Sem 7" : "All clear"}                 trend={isDummyUser ? "Action" : "Clear"} up={false} color="text-red-400"   bg="bg-red-500/10"   />
+            <KPI icon={ShoppingBag}  label="Food Orders"       value={isDummyUser ? 18 : 0}   sub="This month"             trend={isDummyUser ? "+6" : "0"}    up color="text-[#e78a53]"  bg="bg-[#e78a53]/10"  />
+            <KPI icon={Briefcase}    label="Applications"      value={isDummyUser ? 3 : 0}    sub={isDummyUser ? "1 under review" : "0 under review"}         trend={isDummyUser ? "+1" : "0"}    up color="text-purple-400" bg="bg-purple-500/10" />
+            <KPI icon={BookOpen}     label="Resources"         value={isDummyUser ? 7 : 0}    sub={isDummyUser ? "3 downloaded this week" : "0 downloaded"} trend={isDummyUser ? "+3" : "0"}    up color="text-teal-400"   bg="bg-teal-500/10"   />
           </div>
 
           {/* Row 2: Attendance trend + Subject breakdown */}
@@ -163,7 +165,7 @@ export default function StudentDashboard() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
-                  <AreaChart data={attendanceTrend} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+                  <AreaChart data={isDummyUser ? attendanceTrend : []} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
                     <defs>
                       <linearGradient id="attGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%"  stopColor="#34d399" stopOpacity={0.3} />
@@ -187,7 +189,7 @@ export default function StudentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {subjectAttendance.map(s => (
+                {(isDummyUser ? subjectAttendance : []).map(s => (
                   <div key={s.subject}>
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-zinc-300 font-medium">{s.subject}</span>
@@ -217,14 +219,14 @@ export default function StudentDashboard() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={120}>
                   <PieChart>
-                    <Pie data={eventTypes} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={3} dataKey="value">
-                      {eventTypes.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                    <Pie data={isDummyUser ? eventTypes : []} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={3} dataKey="value">
+                      {(isDummyUser ? eventTypes : []).map((e, i) => <Cell key={i} fill={e.fill} />)}
                     </Pie>
                     <Tooltip content={<ChartTip />} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="grid grid-cols-2 gap-1.5 mt-2">
-                  {eventTypes.map(e => (
+                  {(isDummyUser ? eventTypes : []).map(e => (
                     <div key={e.name} className="flex items-center gap-1.5 text-xs">
                       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: e.fill }} />
                       <span className="text-zinc-400">{e.name}</span>
@@ -234,7 +236,7 @@ export default function StudentDashboard() {
                 </div>
                 {/* Upcoming events */}
                 <div className="mt-3 pt-3 border-t border-zinc-800 space-y-1.5">
-                  {upcomingEvents.map(ev => {
+                  {(isDummyUser ? upcomingEvents : []).map(ev => {
                     const Icon = ev.icon
                     return (
                       <div key={ev.title} className="flex items-center gap-2 text-xs">
@@ -259,7 +261,7 @@ export default function StudentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {todaySchedule.map((s, i) => (
+                {(isDummyUser ? todaySchedule : []).map((s, i) => (
                   <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${s.status === "break" ? "bg-zinc-800/30" : "bg-zinc-800/50"}`}>
                     <span className="text-xs text-zinc-500 w-16 flex-shrink-0">{s.time}</span>
                     <div className="flex-1 min-w-0">
@@ -288,7 +290,7 @@ export default function StudentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {recentActivity.map((a, i) => {
+                {(isDummyUser ? recentActivity : []).map((a, i) => {
                   const Icon = a.icon
                   return (
                     <div key={i} className="flex items-center gap-3 p-3 bg-zinc-800/40 rounded-xl hover:bg-zinc-800/70 transition-colors">
@@ -310,11 +312,11 @@ export default function StudentDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {[
+                  {(isDummyUser ? [
                     { company: "TechCorp India",    role: "Frontend Intern",   status: "Under Review", color: "text-yellow-400", bg: "bg-yellow-500/10" },
                     { company: "DataPulse Analytics",role: "Data Science Intern", status: "Applied",   color: "text-blue-400",   bg: "bg-blue-500/10"   },
                     { company: "Designify",          role: "UI/UX Intern",      status: "Shortlisted", color: "text-green-400",  bg: "bg-green-500/10"  },
-                  ].map(a => (
+                  ] : []).map(a => (
                     <div key={a.company} className="flex items-start gap-2 p-2 bg-zinc-800/40 rounded-lg">
                       <Briefcase className="h-3.5 w-3.5 text-purple-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
