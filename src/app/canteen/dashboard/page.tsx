@@ -48,10 +48,31 @@ export default function CanteenDashboard() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (isDummyUser) {
+      // Demo user: load pre-built stats without hitting the real DB
+      setTodaysStats({ revenue: 12480, orders: 87, customers: 64, avgOrderValue: 143 })
+      setWeeklyStats({ revenue: 78350, orders: 541, customers: 310, avgOrderValue: 144 })
+      setMonthlyStats({ revenue: 312400, orders: 2187, customers: 890, avgOrderValue: 142 })
+      setRecentOrders([
+        { id: "ORD-0091", customer: "Rahul Sharma", amount: 210, status: "preparing", time: "2 min ago", items: ["Paneer Butter Masala", "Roti x2"] },
+        { id: "ORD-0090", customer: "Priya Verma", amount: 145, status: "completed", time: "8 min ago", items: ["Veg Thali"] },
+        { id: "ORD-0089", customer: "Amit Singh", amount: 95, status: "completed", time: "15 min ago", items: ["Masala Dosa", "Chai"] },
+        { id: "ORD-0088", customer: "Sneha Patil", amount: 170, status: "preparing", time: "20 min ago", items: ["Hakka Noodles", "Cold Coffee"] },
+        { id: "ORD-0087", customer: "Karan Mehta", amount: 55, status: "completed", time: "30 min ago", items: ["Vada Pav x2", "Samosa"] },
+      ])
+      setLowStockItems([
+        { _id: "s1", itemName: "Paneer", currentQuantity: 2, unit: "kg", reorderLevel: 5, status: "critical" },
+        { _id: "s2", itemName: "Basmati Rice", currentQuantity: 8, unit: "kg", reorderLevel: 10, status: "low" },
+        { _id: "s3", itemName: "Refined Oil", currentQuantity: 3, unit: "L", reorderLevel: 5, status: "low" },
+      ])
+      setIsLoading(false)
+      return
+    }
     if (userId) {
       fetchDashboardData()
     }
-  }, [userId])
+  }, [userId, isDummyUser])
+
 
   const fetchDashboardData = async () => {
     try {

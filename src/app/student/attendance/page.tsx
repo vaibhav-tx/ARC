@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { StudentSidebar } from "@/components/student-sidebar";
@@ -131,7 +131,7 @@ const mockEnrollments = [
   },
 ];
 
-export default function StudentAttendancePage() {
+function StudentAttendanceContent() {
   const searchParams = useSearchParams();
   const classroomParam = searchParams.get("classroom");
 
@@ -563,4 +563,16 @@ export default function StudentAttendancePage() {
       </main>
     </div>
   );
+}
+
+export default function StudentAttendancePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e78a53]" />
+      </div>
+    }>
+      <StudentAttendanceContent />
+    </Suspense>
+  )
 }

@@ -98,15 +98,16 @@ export default function StudentDashboard() {
 
   // Students have firstName/lastName from DB; admin has username='ADMIN1'
   // Never show admin username on student dashboard
-  const isDummyUser = currentUser?.email === "amit.kumar@college.edu" || false;
+  const isDummyUser = currentUser?.email === "rahul.sharma@student.edu" || false;
   const name = (() => {
     if (!currentUser) return "Rohit Sharma"
     if (currentUser.role === "admin") return "Rohit Sharma"
     if (currentUser.firstName) return `${currentUser.firstName}${currentUser.lastName ? " " + currentUser.lastName : ""}`
     if (currentUser.fullName) return currentUser.fullName
     if (currentUser.displayName) return currentUser.displayName
+    if (currentUser.name) return currentUser.name
     if (currentUser.username && currentUser.username.toUpperCase() !== "ADMIN1") return currentUser.username
-    return "Rohit Sharma"
+    return "Student"
   })()
 
   return (
@@ -120,7 +121,9 @@ export default function StudentDashboard() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-white">Welcome back, {name} 👋</h1>
-              <p className="text-zinc-500 text-sm mt-0.5">April 10, 2026 — Thursday</p>
+              <p className="text-zinc-500 text-sm mt-0.5">
+                {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Badge className="bg-zinc-800 border-zinc-700 text-zinc-300 text-xs">

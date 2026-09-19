@@ -14,7 +14,6 @@ import {
   TrendingUp,
   Users,
   Clock,
-  QrCode // 1. Imported the new icon
 } from "lucide-react"
 
 interface SidebarProps {

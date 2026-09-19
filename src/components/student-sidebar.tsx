@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Calendar,
-  MapPin,
+  Navigation,
   UtensilsCrossed,
   BookOpen,
   Users,
@@ -17,9 +17,8 @@ import {
   LogOut,
   IndianRupee,
   Award,
-  FileText,
-  CheckCircle,
   Megaphone,
+  Bot,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -39,20 +38,21 @@ export function StudentSidebar({ className = "" }: SidebarProps) {
   const isActive = (path: string) => pathname === path;
 
   const navItems = [
-    { href: "/student/dashboard", icon: Users, label: "Dashboard" },
-    { href: "/student/schedule", icon: Calendar, label: "Timetable" },
-    { href: "/student/classroom", icon: BookOpen, label: "Classroom" },
-    { href: "/student/materials", icon: ClipboardList, label: "Tests & Exams" },
-    { href: "/student/events", icon: Users, label: "Events" },
-    { href: "/student/food", icon: UtensilsCrossed, label: "Food Ordering" },
-    { href: "/student/resources", icon: BookOpen, label: "Resources" },
-    { href: "/student/ai-mentor", icon: MapPin, label: "Campus Navigation" },
-    { href: "/student/attendance", icon: UserCheck, label: "Attendance" },
-    { href: "/student/internships", icon: Briefcase, label: "Internships" },
-    { href: "/student/parking", icon: Car, label: "Parking" },
-    { href: "/student/fees", icon: IndianRupee, label: "Pay Fees" },
-    { href: "/student/examination", icon: Award, label: "Exam Cell" },
-    { href: "/student/announcements", icon: Megaphone, label: "Announcements" },
+    { href: "/student/dashboard",               icon: Users,         label: "Dashboard" },
+    { href: "/student/schedule",                icon: Calendar,      label: "Timetable" },
+    { href: "/student/classroom",               icon: BookOpen,      label: "Classroom" },
+    { href: "/student/materials",               icon: ClipboardList, label: "Tests & Exams" },
+    { href: "/student/events",                  icon: Users,         label: "Events" },
+    { href: "/student/food",                    icon: UtensilsCrossed, label: "Food Ordering" },
+    { href: "/student/resources",               icon: BookOpen,      label: "Resources" },
+    { href: "/student/ai-mentor",               icon: Bot,           label: "AI Mentor" },
+    { href: "/student/map",                     icon: Navigation,    label: "Campus Map" },
+    { href: "/student/attendance",              icon: UserCheck,     label: "Attendance" },
+    { href: "/student/internships",             icon: Briefcase,     label: "Internships" },
+    { href: "/student/parking",                 icon: Car,           label: "Parking" },
+    { href: "/student/fees",                    icon: IndianRupee,   label: "Pay Fees" },
+    { href: "/student/examination",             icon: Award,         label: "Exam Cell" },
+    { href: "/student/announcements",           icon: Megaphone,     label: "Announcements" },
   ];
 
   return (
@@ -69,7 +69,7 @@ export function StudentSidebar({ className = "" }: SidebarProps) {
         <p className="text-zinc-400 text-sm mt-1">Student Portal</p>
       </div>
 
-      <nav className="px-4 space-y-2">
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto pb-4">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -77,14 +77,14 @@ export function StudentSidebar({ className = "" }: SidebarProps) {
           return (
             <Link key={item.href} href={item.href}>
               <div
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${
                   active
                     ? "text-white bg-[#e78a53]/10 border-l-2 border-[#e78a53]"
                     : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
                 }`}
               >
-                <Icon className={`h-5 w-5 ${active ? "text-[#e78a53]" : ""}`} />
-                <span>{item.label}</span>
+                <Icon className={`h-4 w-4 ${active ? "text-[#e78a53]" : ""}`} />
+                <span className="text-sm">{item.label}</span>
               </div>
             </Link>
           );
