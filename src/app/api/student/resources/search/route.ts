@@ -62,10 +62,11 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey = process.env.OPENROUTER_API_KEY;
+    const isRealApiKey = Boolean(apiKey && !apiKey.startsWith("YOUR_") && !apiKey.includes("YOUR_"));
 
-    // If no API key is set, return mock data (useful for development)
-    if (!apiKey) {
-      console.warn("OPENROUTER_API_KEY not set. Returning mock web resources.");
+    // If no real API key is set, return curated educational resources fallback
+    if (!isRealApiKey) {
+      console.warn("OPENROUTER_API_KEY is not configured or placeholder. Returning mock web resources.");
       return NextResponse.json({ resources: mockWebResults });
     }
 

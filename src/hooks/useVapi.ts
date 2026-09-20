@@ -161,11 +161,25 @@ export function useVapi(assistantId?: string): UseVapiReturn {
     return vapi
   }, [appendMessage])
 
+function isRealKey(val: string | undefined): boolean {
+  if (!val) return false
+  const trimmed = val.trim()
+  return trimmed.length > 0 && !trimmed.startsWith('YOUR_') && !trimmed.includes('YOUR_')
+}
+
   const start = useCallback(async () => {
     const resolvedAssistantId = assistantId || defaultAssistantId
 
-    if (!resolvedAssistantId) {
-      appendMessage({ role: 'assistant', text: 'Missing Vapi assistant ID.' })
+    if (!isRealKey(publicKey) || !isRealKey(resolvedAssistantId)) {
+      setIsLoading(true)
+      setTimeout(() => {
+        setIsLoading(false)
+        setIsCallActive(true)
+        appendMessage({
+          role: 'assistant',
+          text: 'Hello! I am your AI Academic Mentor. How can I support your study schedule, exam prep, or career choices today? (Demo Mode active — configure Vapi credentials in .env for live voice call).',
+        })
+      }, 600)
       return
     }
 

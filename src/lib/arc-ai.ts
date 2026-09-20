@@ -56,12 +56,34 @@ export function fallbackResponse(type: string, data: any): any {
   return { reply: "I'm here to help! Ask me about your timetable, attendance, canteen, or events.", source: "general" };
 }
 
+function isConfiguredKey(key: string | undefined): boolean {
+  if (!key) return false;
+  const trimmed = key.trim();
+  return trimmed.length > 0 && !trimmed.startsWith("YOUR_") && !trimmed.includes("YOUR_");
+}
+
 export async function generateAIResponse(prompt: string, fallbackType: string, fallbackData: any): Promise<any> {
-  if (process.env.OPENROUTER_API_KEY) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (isConfiguredKey(apiKey)) {
     try {
-      const res = await fetch(`${OPENROUTER_BASE}/chat/completions`, { method: "POST", headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: OPENROUTER_MODEL, messages: [{ role: "user", content: prompt }], max_tokens: 512 }) });
-      if (res.ok) { const json = await res.json(); return json.choices[0].message.content; }
+      const res = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: OPENROUTER_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 512
+        })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.choices[0].message.content;
+      }
     } catch { /* fall through */ }
   }
   return fallbackResponse(fallbackType, fallbackData);
 }
+
