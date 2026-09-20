@@ -73,7 +73,7 @@ export default function StudentDashboard() {
           const parsed = JSON.parse(u)
           setCurrentUser(parsed)
           
-          const res = await fetch(`/api/student/dashboard?studentId=${parsed.id || parsed._id}`)
+          const res = await fetch(`/api/student/dashboard?studentId=${parsed.id || parsed._id}&email=${encodeURIComponent(parsed.email || "")}`)
           const json = await res.json()
           if (!res.ok) throw new Error(json.error || "Failed to fetch dashboard data")
           setData(json)

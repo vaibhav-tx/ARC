@@ -254,7 +254,7 @@ export function OrderDialog({
       currency: "INR",
       name: "Arc Campus Food",
       description: `Order ${demoOrder.orderId}`,
-      handler: (response: any) => {
+      handler: async (response: any) => {
         const paidOrder = {
           ...demoOrder,
           paymentStatus: "paid",
@@ -263,6 +263,16 @@ export function OrderDialog({
             response.razorpay_order_id || `demo_rzp_${Date.now()}`,
           razorpaySignature: response.razorpay_signature,
         };
+
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(paidOrder)
+          });
+        } catch (err) {
+          console.error("Failed to save online order to database:", err);
+        }
 
         onOrderSuccess(paidOrder);
         onClose();
@@ -311,6 +321,17 @@ export function OrderDialog({
         await handleRazorpayPayment();
       } else {
         const offlineOrder = buildDemoOrder();
+        
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(offlineOrder)
+          });
+        } catch (err) {
+          console.error("Failed to save offline order to database:", err);
+        }
+
         onOrderSuccess(offlineOrder);
         onClose();
         setIsLoading(false);

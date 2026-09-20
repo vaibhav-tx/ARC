@@ -123,11 +123,10 @@ export default function TeacherDashboardPage() {
       status: "preparing",
       createdAt: "2026-04-06T13:00:00.000Z",
       items: [{ name: "Sandwich" }, { name: "Tea" }],
-    },
   ];
 
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [todayClasses, setTodayClasses] = useState<TodayClass[]>([]);
@@ -138,11 +137,33 @@ export default function TeacherDashboardPage() {
     studentsPresent: 0,
     attendanceRate: 0,
   });
-  const isDummyUser = currentUser?.email === "priya.verma@college.edu";
 
-  const displayClassrooms = classrooms;
-  const displayFoodOrders = foodOrders;
-  const displayTodayClasses = todayClasses;
+  const isDummyUser = currentUser?.email === "priya.verma@college.edu";
+  const displayClassrooms = isDummyUser && classrooms.length === 0 ? demoClassrooms : classrooms;
+  const displayFoodOrders = isDummyUser && foodOrders.length === 0 ? demoFoodOrders : foodOrders;
+  const displayTodayClasses = isDummyUser && todayClasses.length === 0 ? [
+    {
+      classroomId: "CS101",
+      subject: "Data Structures",
+      time: "9:00 AM",
+      room: "Room 301",
+      students: 45,
+    },
+    {
+      classroomId: "CS102",
+      subject: "Algorithms",
+      time: "11:00 AM",
+      room: "Lab 2",
+      students: 40,
+    },
+    {
+      classroomId: "CS103",
+      subject: "Database Systems",
+      time: "2:00 PM",
+      room: "Room 205",
+      students: 38,
+    },
+  ] : todayClasses;
 
   const attendanceTrendData = [
     { week: "Mon", sectionA: 88, sectionB: 91, sectionC: 85 },
@@ -176,7 +197,6 @@ export default function TeacherDashboardPage() {
     if (currentUser) {
       fetchClassrooms();
       fetchFoodOrders();
-      fetchAttendanceStats();
       fetchTodaySchedule();
     }
   }, [currentUser]);
@@ -189,6 +209,7 @@ export default function TeacherDashboardPage() {
       if (response.ok) {
         const data = await response.json();
         setClassrooms(data.classrooms || []);
+        fetchAttendanceStats(data.classrooms || []);
       } else {
         throw new Error("Failed to load classrooms");
       }
@@ -201,11 +222,11 @@ export default function TeacherDashboardPage() {
   const fetchFoodOrders = async () => {
     try {
       const response = await fetch(
-        `/api/orders?customerId=${currentUser._id || currentUser.id}&limit=5`,
+        `/api/orders/user?userId=${currentUser._id || currentUser.id}&userType=teacher`
       );
       if (response.ok) {
         const data = await response.json();
-        setFoodOrders(data.data || []);
+        setFoodOrders(data.orders || []);
       }
     } catch (error) {
       console.error("Error fetching food orders:", error);
@@ -214,12 +235,11 @@ export default function TeacherDashboardPage() {
     }
   };
 
-  const fetchAttendanceStats = async () => {
+  const fetchAttendanceStats = async (classesList: Classroom[]) => {
     try {
-      // For now, use mock data - replace with actual API call when available
       setAttendanceStats({
-        totalClasses: classrooms.length,
-        classesToday: isDummyUser ? 3 : (classrooms.length > 0 ? 2 : 0),
+        totalClasses: classesList.length,
+        classesToday: isDummyUser ? 3 : (classesList.length > 0 ? 2 : 0),
         studentsPresent: isDummyUser ? 85 : 0,
         attendanceRate: isDummyUser ? 92 : 0,
       });
@@ -230,31 +250,9 @@ export default function TeacherDashboardPage() {
 
   const fetchTodaySchedule = async () => {
     try {
-      // Mock data for today's classes - replace with actual API call
-      const mockTodayClasses = isDummyUser ? [
-        {
-          classroomId: "CS101",
-          subject: "Data Structures",
-          time: "9:00 AM",
-          room: "Room 301",
-          students: 45,
-        },
-        {
-          classroomId: "CS102",
-          subject: "Algorithms",
-          time: "11:00 AM",
-          room: "Lab 2",
-          students: 40,
-        },
-        {
-          classroomId: "CS103",
-          subject: "Database Systems",
-          time: "2:00 PM",
-          room: "Room 205",
-          students: 38,
-        },
-      ] : [];
-      setTodayClasses(mockTodayClasses);
+      // In a real scenario, this would fetch from an API
+      // Since we don't have it, we just set empty for real users, and demo is handled by displayTodayClasses
+      setTodayClasses([]);
     } catch (error) {
       console.error("Error fetching today schedule:", error);
     }
