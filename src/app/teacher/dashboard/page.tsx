@@ -123,6 +123,7 @@ export default function TeacherDashboardPage() {
       status: "preparing",
       createdAt: "2026-04-06T13:00:00.000Z",
       items: [{ name: "Sandwich" }, { name: "Tea" }],
+    }
   ];
 
   const [currentUser, setCurrentUser] = useState<any>(null);
