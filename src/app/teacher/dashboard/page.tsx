@@ -140,9 +140,11 @@ export default function TeacherDashboardPage() {
   });
 
   const isDummyUser = currentUser?.email === "priya.verma@college.edu";
-  const displayClassrooms = isDummyUser && classrooms.length === 0 ? demoClassrooms : classrooms;
+  // The user requested that we keep all charts/schedules/classrooms the same for new users,
+  // but clear the food orders since a new user hasn't ordered anything.
+  const displayClassrooms = classrooms.length === 0 ? demoClassrooms : classrooms;
   const displayFoodOrders = isDummyUser && foodOrders.length === 0 ? demoFoodOrders : foodOrders;
-  const displayTodayClasses = isDummyUser && todayClasses.length === 0 ? [
+  const displayTodayClasses = todayClasses.length === 0 ? [
     {
       classroomId: "CS101",
       subject: "Data Structures",
@@ -239,10 +241,10 @@ export default function TeacherDashboardPage() {
   const fetchAttendanceStats = async (classesList: Classroom[]) => {
     try {
       setAttendanceStats({
-        totalClasses: classesList.length,
-        classesToday: isDummyUser ? 3 : (classesList.length > 0 ? 2 : 0),
-        studentsPresent: isDummyUser ? 85 : 0,
-        attendanceRate: isDummyUser ? 92 : 0,
+        totalClasses: classesList.length || 2, // fallback to 2 if no classes
+        classesToday: classesList.length > 0 ? 2 : 3,
+        studentsPresent: 85,
+        attendanceRate: 92,
       });
     } catch (error) {
       console.error("Error fetching attendance stats:", error);
@@ -318,69 +320,77 @@ export default function TeacherDashboardPage() {
           )}
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="border-white/10">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-500/10 rounded-2xl">
-                    <BookOpen className="h-6 w-6 text-blue-400" />
+            <Link href="/teacher/classroom" className="block h-full">
+              <Card className="border-white/10 hover:border-[#e78a53]/50 transition-all hover:scale-105 cursor-pointer h-full">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-blue-500/10 rounded-2xl">
+                      <BookOpen className="h-6 w-6 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">
+                        {loading ? "--" : getActiveClassrooms()}
+                      </p>
+                      <p className="text-slate-300 text-sm">Active Classes</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">
-                      {loading ? "--" : getActiveClassrooms()}
-                    </p>
-                    <p className="text-slate-300 text-sm">Active Classes</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="border-white/10">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-green-500/10 rounded-lg">
-                    <Users className="h-6 w-6 text-green-400" />
+            <Link href="/teacher/classroom" className="block h-full">
+              <Card className="border-white/10 hover:border-[#e78a53]/50 transition-all hover:scale-105 cursor-pointer h-full">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-green-500/10 rounded-lg">
+                      <Users className="h-6 w-6 text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">
+                        {loading ? "--" : getTotalStudents()}
+                      </p>
+                      <p className="text-slate-300 text-sm">Total Students</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">
-                      {loading ? "--" : getTotalStudents()}
-                    </p>
-                    <p className="text-slate-300 text-sm">Total Students</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="border-white/10">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-[#e78a53]/10 rounded-lg">
-                    <TrendingUp className="h-6 w-6 text-[#e78a53]" />
+            <Link href="/teacher/attendance" className="block h-full">
+              <Card className="border-white/10 hover:border-[#e78a53]/50 transition-all hover:scale-105 cursor-pointer h-full">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-[#e78a53]/10 rounded-lg">
+                      <TrendingUp className="h-6 w-6 text-[#e78a53]" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">
+                        {loading ? "--" : `${attendanceStats.attendanceRate}%`}
+                      </p>
+                      <p className="text-slate-300 text-sm">Attendance Rate</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">
-                      {loading ? "--" : `${attendanceStats.attendanceRate}%`}
-                    </p>
-                    <p className="text-slate-300 text-sm">Attendance Rate</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="border-white/10">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-purple-500/10 rounded-lg">
-                    <CalendarDays className="h-6 w-6 text-purple-400" />
+            <Link href="/teacher/timetable" className="block h-full">
+              <Card className="border-white/10 hover:border-[#e78a53]/50 transition-all hover:scale-105 cursor-pointer h-full">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-purple-500/10 rounded-lg">
+                      <CalendarDays className="h-6 w-6 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">
+                        {loading ? "--" : displayTodayClasses.length}
+                      </p>
+                      <p className="text-slate-300 text-sm">Classes Today</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">
-                      {loading ? "--" : displayTodayClasses.length}
-                    </p>
-                    <p className="text-slate-300 text-sm">Classes Today</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">

@@ -55,6 +55,7 @@ interface Internship {
   contactPhone?: string
   companyWebsite?: string
   applicationUrl?: string
+  companyLogo?: string
   status: 'active' | 'closed' | 'draft'
   category?: 'engineering' | 'design' | 'marketing' | 'sales' | 'hr' | 'finance' | 'other'
   experienceLevel: 'fresher' | 'experienced'
@@ -65,11 +66,11 @@ interface Internship {
 }
 
 const mockInternships: Internship[] = [
-  { _id:"mi1", title:"Software Engineering Intern", company:"TechCorp India", description:"Work on scalable backend systems using Node.js and AWS. Opportunity to work with senior engineers.", requirements:["B.Tech CS/IT","CGPA ≥ 7.0"], responsibilities:["Build REST APIs","Write unit tests","Code reviews"], skills:["Node.js","AWS","MongoDB"], location:"Mumbai", locationType:"hybrid", duration:"6 months", stipend:"₹25,000/mo", applicationDeadline: new Date(Date.now()+12*86400000).toISOString(), contactEmail:"hr@techcorp.in", status:"active", category:"engineering", experienceLevel:"fresher", isRemote:false, applicationCount:34, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
-  { _id:"mi2", title:"Frontend Developer Intern", company:"DesignHub", description:"Create pixel-perfect UI using React and Tailwind CSS for SaaS products.", requirements:["Any CS background","Portfolio preferred"], responsibilities:["Implement UI designs","Optimize performance"], skills:["React","TypeScript","Tailwind CSS"], location:"Remote", locationType:"remote", duration:"3 months", stipend:"₹15,000/mo", applicationDeadline: new Date(Date.now()+5*86400000).toISOString(), contactEmail:"careers@designhub.io", status:"active", category:"engineering", experienceLevel:"fresher", isRemote:true, applicationCount:61, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
-  { _id:"mi3", title:"Data Science Intern", company:"DataMinds Analytics", description:"Analyse large datasets and build ML models to predict customer churn.", requirements:["Python proficiency","Statistics fundamentals"], responsibilities:["Data cleaning","Model training","Dashboard creation"], skills:["Python","Pandas","Scikit-learn","SQL"], location:"Pune", locationType:"onsite", duration:"4 months", stipend:"₹20,000/mo", applicationDeadline: new Date(Date.now()+20*86400000).toISOString(), contactEmail:"intern@dataminds.co", status:"active", category:"engineering", experienceLevel:"fresher", isRemote:false, applicationCount:28, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
-  { _id:"mi4", title:"UI/UX Design Intern", company:"CreativeStudio", description:"Design user-centered experiences for mobile and web products. Collaborate with product managers.", requirements:["Figma expertise","Portfolio required"], responsibilities:["Wireframes","Prototypes","User research"], skills:["Figma","Adobe XD","User Research"], location:"Bangalore", locationType:"hybrid", duration:"3 months", stipend:"₹18,000/mo", applicationDeadline: new Date(Date.now()+8*86400000).toISOString(), contactEmail:"design@creativestudio.in", status:"active", category:"design", experienceLevel:"fresher", isRemote:false, applicationCount:47, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
-  { _id:"mi5", title:"Digital Marketing Intern", company:"GrowFast Startup", description:"Run and optimise social media campaigns, SEO, and paid ads to grow brand awareness.", requirements:["Any background","Social media savvy"], responsibilities:["Content creation","Ad campaigns","Analytics reporting"], skills:["Google Ads","SEO","Content Writing","Analytics"], location:"Remote", locationType:"remote", duration:"2 months", stipend:"₹10,000/mo", applicationDeadline: new Date(Date.now()+30*86400000).toISOString(), contactEmail:"marketing@growfast.co", status:"active", category:"marketing", experienceLevel:"fresher", isRemote:true, applicationCount:52, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
+  { _id:"mi1", title:"Software Engineering Intern", company:"TechCorp India", companyLogo:"https://ui-avatars.com/api/?name=TechCorp+India&background=0D8ABC&color=fff", description:"Work on scalable backend systems using Node.js and AWS. Opportunity to work with senior engineers.", requirements:["B.Tech CS/IT","CGPA ≥ 7.0"], responsibilities:["Build REST APIs","Write unit tests","Code reviews"], skills:["Node.js","AWS","MongoDB"], location:"Mumbai", locationType:"hybrid", duration:"6 months", stipend:"₹25,000/mo", applicationDeadline: new Date(Date.now()+12*86400000).toISOString(), contactEmail:"hr@techcorp.in", status:"active", category:"engineering", experienceLevel:"fresher", isRemote:false, applicationCount:34, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
+  { _id:"mi2", title:"Frontend Developer Intern", company:"DesignHub", companyLogo:"https://ui-avatars.com/api/?name=DesignHub&background=FF5722&color=fff", description:"Create pixel-perfect UI using React and Tailwind CSS for SaaS products.", requirements:["Any CS background","Portfolio preferred"], responsibilities:["Implement UI designs","Optimize performance"], skills:["React","TypeScript","Tailwind CSS"], location:"Remote", locationType:"remote", duration:"3 months", stipend:"₹15,000/mo", applicationDeadline: new Date(Date.now()+5*86400000).toISOString(), contactEmail:"careers@designhub.io", status:"active", category:"engineering", experienceLevel:"fresher", isRemote:true, applicationCount:61, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
+  { _id:"mi3", title:"Data Science Intern", company:"DataMinds Analytics", companyLogo:"https://ui-avatars.com/api/?name=DataMinds+Analytics&background=4CAF50&color=fff", description:"Analyse large datasets and build ML models to predict customer churn.", requirements:["Python proficiency","Statistics fundamentals"], responsibilities:["Data cleaning","Model training","Dashboard creation"], skills:["Python","Pandas","Scikit-learn","SQL"], location:"Pune", locationType:"onsite", duration:"4 months", stipend:"₹20,000/mo", applicationDeadline: new Date(Date.now()+20*86400000).toISOString(), contactEmail:"intern@dataminds.co", status:"active", category:"engineering", experienceLevel:"fresher", isRemote:false, applicationCount:28, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
+  { _id:"mi4", title:"UI/UX Design Intern", company:"CreativeStudio", companyLogo:"https://ui-avatars.com/api/?name=CreativeStudio&background=9C27B0&color=fff", description:"Design user-centered experiences for mobile and web products. Collaborate with product managers.", requirements:["Figma expertise","Portfolio required"], responsibilities:["Wireframes","Prototypes","User research"], skills:["Figma","Adobe XD","User Research"], location:"Bangalore", locationType:"hybrid", duration:"3 months", stipend:"₹18,000/mo", applicationDeadline: new Date(Date.now()+8*86400000).toISOString(), contactEmail:"design@creativestudio.in", status:"active", category:"design", experienceLevel:"fresher", isRemote:false, applicationCount:47, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
+  { _id:"mi5", title:"Digital Marketing Intern", company:"GrowFast Startup", companyLogo:"https://ui-avatars.com/api/?name=GrowFast+Startup&background=F44336&color=fff", description:"Run and optimise social media campaigns, SEO, and paid ads to grow brand awareness.", requirements:["Any background","Social media savvy"], responsibilities:["Content creation","Ad campaigns","Analytics reporting"], skills:["Google Ads","SEO","Content Writing","Analytics"], location:"Remote", locationType:"remote", duration:"2 months", stipend:"₹10,000/mo", applicationDeadline: new Date(Date.now()+30*86400000).toISOString(), contactEmail:"marketing@growfast.co", status:"active", category:"marketing", experienceLevel:"fresher", isRemote:true, applicationCount:52, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() },
 ]
 
 export default function StudentInternshipsPage() {
@@ -481,7 +482,11 @@ export default function StudentInternshipsPage() {
                     <CardTitle className="text-white text-lg mb-2">{internship.title}</CardTitle>
                     <div className="flex items-center gap-4 text-sm text-zinc-400 mb-3">
                       <div className="flex items-center gap-1">
-                        <Building className="h-4 w-4" />
+                        {internship.companyLogo ? (
+                          <img src={internship.companyLogo} alt={internship.company} className="w-5 h-5 rounded-full object-cover" />
+                        ) : (
+                          <Building className="h-4 w-4" />
+                        )}
                         {internship.company}
                       </div>
                       <div className="flex items-center gap-1">
@@ -650,8 +655,12 @@ export default function StudentInternshipsPage() {
               <Briefcase className="h-5 w-5 text-[#e78a53]" />
               Apply for Internship
             </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Submit your application for {selectedInternship?.title} at {selectedInternship?.company}
+            <DialogDescription className="text-zinc-400 flex items-center gap-2">
+              <span>Submit your application for {selectedInternship?.title} at</span>
+              {selectedInternship?.companyLogo && (
+                <img src={selectedInternship.companyLogo} alt={selectedInternship.company} className="w-5 h-5 rounded-full object-cover inline" />
+              )}
+              <span className="font-semibold text-white">{selectedInternship?.company}</span>
             </DialogDescription>
           </DialogHeader>
           

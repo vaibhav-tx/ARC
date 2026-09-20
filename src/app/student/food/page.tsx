@@ -65,12 +65,12 @@ export default function StudentFoodPage() {
     { _id: "Demo-m10", name: "Steamed Idli", description: "Soft and fluffy rice cakes served with sambar and coconut chutney.", price: 50, category: "South Indian", image: "/idli.jpg", isVeg: true, isSpicy: false, prepTime: 5, rating: 4.6, isAvailable: true, canteenName: "South Corner", canteenId: "canteen-2", isDemo: true },
     { _id: "Demo-m11", name: "Mutter Paneer", description: "Cottage cheese and green peas in a rich, creamy tomato gravy. Served with 2 Rotis.", price: 140, category: "Main Course", image: "/mutter-paneer.jpg", isVeg: true, isSpicy: true, prepTime: 15, rating: 4.7, isAvailable: true, canteenName: "Campus Cafe", canteenId: "canteen-1", isDemo: true },
     { _id: "Demo-m12", name: "Vada Pav", description: "The iconic Mumbai snack: spicy potato fritter in a soft bun.", price: 25, category: "Street Food", image: "/vada-pav.jpg", isVeg: true, isSpicy: true, prepTime: 5, rating: 4.9, isAvailable: true, canteenName: "Campus Cafe", canteenId: "canteen-1", isDemo: true },
-    { _id: "Demo-m13", name: "Kanda Poha", description: "Light flattened rice cooked with onions, peanuts, and turmeric.", price: 45, category: "Breakfast", image: "/poha.jpg", isVeg: true, isSpicy: false, prepTime: 5, rating: 4.3, isAvailable: true, canteenName: "Campus Cafe", canteenId: "canteen-1", isDemo: true },
-    { _id: "Demo-m14", name: "Belgian Waffles", description: "Crispy waffles topped with chocolate syrup and powdered sugar.", price: 110, category: "Desserts", image: "/waffles.jpg", isVeg: true, isSpicy: false, prepTime: 12, rating: 4.6, isAvailable: true, canteenName: "Sweet Cravings", canteenId: "canteen-5", isDemo: true },
+    { _id: "Demo-m13", name: "Kanda Poha", description: "Light flattened rice cooked with onions, peanuts, and turmeric.", price: 45, category: "Breakfast", image: "/poha.jpg", isVeg: true, isSpicy: false, prepTime: 5, rating: 4.3, isAvailable: false, canteenName: "Campus Cafe", canteenId: "canteen-1", isDemo: true },
+    { _id: "Demo-m14", name: "Belgian Waffles", description: "Crispy waffles topped with chocolate syrup and powdered sugar.", price: 110, category: "Desserts", image: "/waffles.jpg", isVeg: true, isSpicy: false, prepTime: 12, rating: 4.6, isAvailable: false, canteenName: "Sweet Cravings", canteenId: "canteen-5", isDemo: true },
     { _id: "Demo-m15", name: "Cold Coffee", description: "Chilled coffee blended with ice cream and served with whipped cream.", price: 70, category: "Beverages", image: "/cold-coffee.jpg", isVeg: true, isSpicy: false, prepTime: 5, rating: 4.8, isAvailable: true, canteenName: "Sweet Cravings", canteenId: "canteen-5", isDemo: true },
     { _id: "Demo-m16", name: "Paneer Roll", description: "Delicious paneer wrapped in a soft paratha with mint chutney.", price: 85, category: "Snacks", image: "/paneer-roll.jpg", isVeg: true, isSpicy: false, prepTime: 5, rating: 4.8, isAvailable: true, canteenName: "Bite Station", canteenId: "canteen-4", isDemo: true },
     { _id: "Demo-m17", name: "Thick Milkshake", description: "Rich and creamy chocolate milkshake blended with vanilla ice cream.", price: 80, category: "Beverages", image: "/milkshake.jpg", isVeg: true, isSpicy: false, prepTime: 5, rating: 4.5, isAvailable: true, canteenName: "Sweet Cravings", canteenId: "canteen-5", isDemo: true },
-    { _id: "Demo-m18", name: "Cold Drinks", description: "Chilled assorted carbonated beverages (Cola, Sprite, Thums Up).", price: 40, category: "Beverages", image: "/colddrinks.jpg", isVeg: true, isSpicy: false, prepTime: 2, rating: 4.0, isAvailable: true, canteenName: "Bite Station", canteenId: "canteen-4", isDemo: true },
+    { _id: "Demo-m18", name: "Cold Drinks", description: "Chilled assorted carbonated beverages (Cola, Sprite, Thums Up).", price: 40, category: "Beverages", image: "/colddrinks.jpg", isVeg: true, isSpicy: false, prepTime: 2, rating: 4.0, isAvailable: false, canteenName: "Bite Station", canteenId: "canteen-4", isDemo: true },
   ]
   const demoRecentOrders = [
     {
@@ -130,6 +130,7 @@ export default function StudentFoodPage() {
   const [showCart, setShowCart] = useState(false)
 
   const addToCart = (item: MenuItem) => {
+    if (!item.isAvailable) return;
     setCart(prev => {
       const existing = prev.find(c => c.item._id === item._id)
       if (existing) return prev.map(c => c.item._id === item._id ? { ...c, qty: c.qty + 1 } : c)

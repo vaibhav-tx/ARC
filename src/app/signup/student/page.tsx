@@ -126,6 +126,23 @@ export default function StudentSignupPage() {
     loadAvailableClasses()
   }, [])
 
+  const getFilteredClasses = () => {
+    if (!formData.branch) return availableClasses;
+    const branchMap: Record<string, string> = {
+      "Computer Science": "CSE",
+      "Information Technology": "IT",
+      "Electronics & Communication": "ECE",
+      "Electrical": "EE",
+      "Mechanical": "MECH",
+      "Civil": "CIVIL"
+    };
+    const prefix = branchMap[formData.branch];
+    if (prefix) {
+      return availableClasses.filter(c => c.startsWith(prefix));
+    }
+    return availableClasses;
+  }
+
   const courses = [
     "Computer Science Engineering",
     "Information Technology",
@@ -519,7 +536,9 @@ export default function StudentSignupPage() {
                         <SelectValue placeholder="Select your class" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableClasses.map((className) => {
+                        {getFilteredClasses().length === 0 ? (
+                          <div className="p-2 text-sm text-muted-foreground text-center">No classes available for selected branch</div>
+                        ) : getFilteredClasses().map((className) => {
                           const classDetail = classDetails.find(detail => detail.className === className)
                           return (
                             <SelectItem key={className} value={className}>

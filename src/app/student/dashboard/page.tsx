@@ -39,22 +39,25 @@ function ChartTip({ active, payload, label }: any) {
 }
 
 // ── KPI card ──────────────────────────────────────────────────────────────────
-function KPI({ icon: Icon, label, value, sub, trend, up, color, bg }: any) {
-  return (
-    <Card className="bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 transition-colors">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between mb-3">
-          <div className={`p-2.5 rounded-xl ${bg}`}><Icon className={`h-5 w-5 ${color}`} /></div>
-          <span className={`flex items-center gap-0.5 text-xs font-semibold ${up ? "text-green-400" : "text-red-400"}`}>
-            {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}{trend}
-          </span>
+function KPI({ icon: Icon, label, value, sub, trend, up, color, bg, href }: any) {
+  const content = (
+    <Card className="bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 transition-all hover:scale-105 cursor-pointer h-full">
+      <CardContent className="p-5 flex flex-col h-full justify-between">
+        <div>
+          <div className="flex items-start justify-between mb-3">
+            <div className={`p-2.5 rounded-xl ${bg}`}><Icon className={`h-5 w-5 ${color}`} /></div>
+            <span className={`flex items-center gap-0.5 text-xs font-semibold ${up ? "text-green-400" : "text-red-400"}`}>
+              {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}{trend}
+            </span>
+          </div>
+          <p className="text-3xl font-bold text-white">{value}</p>
+          <p className="text-zinc-400 text-sm mt-0.5">{label}</p>
         </div>
-        <p className="text-3xl font-bold text-white">{value}</p>
-        <p className="text-zinc-400 text-sm mt-0.5">{label}</p>
-        <p className="text-zinc-600 text-xs mt-0.5">{sub}</p>
+        <p className="text-zinc-600 text-xs mt-3">{sub}</p>
       </CardContent>
     </Card>
   )
+  return href ? <Link href={href} className="block h-full">{content}</Link> : content
 }
 
 export default function StudentDashboard() {
@@ -145,12 +148,12 @@ export default function StudentDashboard() {
 
           {/* KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            <KPI icon={CheckCircle}  label="Avg Attendance"    value={data?.kpis?.attendance?.value || "0%"}  sub={data?.kpis?.attendance?.sub || "This semester"}         trend={data?.kpis?.attendance?.trend || "0%"}   up color="text-green-400"  bg="bg-green-500/10"  />
-            <KPI icon={Calendar}     label="Events Registered" value={data?.kpis?.events?.value || "0"}    sub={data?.kpis?.events?.sub || "0 upcoming"}             trend={data?.kpis?.events?.trend || "0"}    up color="text-blue-400"   bg="bg-blue-500/10"   />
-            <KPI icon={IndianRupee}  label="Fees Due"          value={data?.kpis?.fees?.value || "₹0"} sub={data?.kpis?.fees?.sub || "All clear"}                 trend={data?.kpis?.fees?.trend || "Clear"} up={false} color="text-red-400"   bg="bg-red-500/10"   />
-            <KPI icon={ShoppingBag}  label="Food Orders"       value={data?.kpis?.orders?.value || "0"}   sub={data?.kpis?.orders?.sub || "This month"}             trend={data?.kpis?.orders?.trend || "0"}    up color="text-[#e78a53]"  bg="bg-[#e78a53]/10"  />
-            <KPI icon={Briefcase}    label="Applications"      value={data?.kpis?.applications?.value || "0"}    sub={data?.kpis?.applications?.sub || "0 under review"}         trend={data?.kpis?.applications?.trend || "0"}    up color="text-purple-400" bg="bg-purple-500/10" />
-            <KPI icon={BookOpen}     label="Resources"         value={data?.kpis?.resources?.value || "0"}    sub={data?.kpis?.resources?.sub || "0 downloaded"} trend={data?.kpis?.resources?.trend || "0"}    up color="text-teal-400"   bg="bg-teal-500/10"   />
+            <KPI href="/student/attendance" icon={CheckCircle}  label="Avg Attendance"    value={data?.kpis?.attendance?.value || "0%"}  sub={data?.kpis?.attendance?.sub || "This semester"}         trend={data?.kpis?.attendance?.trend || "0%"}   up color="text-green-400"  bg="bg-green-500/10"  />
+            <KPI href="/student/events" icon={Calendar}     label="Events Registered" value={data?.kpis?.events?.value || "0"}    sub={data?.kpis?.events?.sub || "0 upcoming"}             trend={data?.kpis?.events?.trend || "0"}    up color="text-blue-400"   bg="bg-blue-500/10"   />
+            <KPI href="/student/fees" icon={IndianRupee}  label="Fees Due"          value={data?.kpis?.fees?.value || "₹0"} sub={data?.kpis?.fees?.sub || "All clear"}                 trend={data?.kpis?.fees?.trend || "Clear"} up={false} color="text-red-400"   bg="bg-red-500/10"   />
+            <KPI href="/student/food" icon={ShoppingBag}  label="Food Orders"       value={data?.kpis?.orders?.value || "0"}   sub={data?.kpis?.orders?.sub || "This month"}             trend={data?.kpis?.orders?.trend || "0"}    up color="text-[#e78a53]"  bg="bg-[#e78a53]/10"  />
+            <KPI href="/student/internships" icon={Briefcase}    label="Applications"      value={data?.kpis?.applications?.value || "0"}    sub={data?.kpis?.applications?.sub || "0 under review"}         trend={data?.kpis?.applications?.trend || "0"}    up color="text-purple-400" bg="bg-purple-500/10" />
+            <KPI href="/student/classroom" icon={BookOpen}     label="Resources"         value={data?.kpis?.resources?.value || "0"}    sub={data?.kpis?.resources?.sub || "0 downloaded"} trend={data?.kpis?.resources?.trend || "0"}    up color="text-teal-400"   bg="bg-teal-500/10"   />
           </div>
 
           {/* Row 2: Attendance trend + Subject breakdown */}
