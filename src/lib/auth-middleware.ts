@@ -137,13 +137,30 @@ const STORAGE_KEYS = {
 function getStoredUser() {
   if (typeof window === "undefined") return null;
   const stored = window.localStorage.getItem(STORAGE_KEYS.currentUser);
-  if (!stored) return null;
+  if (!stored) {
+    // Fallback: Check document.cookie for session data
+    try {
+      const match = document.cookie.match(new RegExp('(^| )arc_user_session=([^;]+)'));
+      if (match && match[2]) {
+        return JSON.parse(decodeURIComponent(match[2]));
+      }
+    } catch { /* ignore */ }
+    return null;
+  }
 
   try {
     return JSON.parse(stored);
   } catch {
     return null;
   }
+}
+
+export function syncUserSessionCookie(user: any) {
+  if (typeof window === "undefined" || !user) return;
+  try {
+    const encoded = encodeURIComponent(JSON.stringify(user));
+    document.cookie = `arc_user_session=${encoded}; path=/; max-age=86400; SameSite=Lax`;
+  } catch { /* ignore */ }
 }
 
 export function isAuthenticatedAdmin() {

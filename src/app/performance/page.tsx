@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Download } from "lucide-react"
 
 type PredictionLabel = "at_risk" | "average" | "high_performer"
 
@@ -269,6 +270,17 @@ export default function PerformancePage() {
                 ) : (
                   <p className="mt-2 text-sm text-zinc-400">No additional factors provided by the model.</p>
                 )}
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-zinc-800 flex justify-end">
+                <Button
+                  onClick={() => window.print()}
+                  variant="outline"
+                  className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white text-xs gap-2"
+                >
+                  <Download className="h-3.5 w-3.5 text-[#e78a53]" />
+                  Download / Print Academic Report
+                </Button>
               </div>
             </div>
           )}

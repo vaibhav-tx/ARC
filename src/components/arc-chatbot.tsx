@@ -57,6 +57,34 @@ export function ArcChatbot({ userRole = "student", timetable }: ArcChatbotProps)
     } finally { setLoading(false); }
   }
 
+  const promptChips: Record<string, string[]> = {
+    student: ["📊 Predict SGPA", "🍕 What's for lunch?", "📅 My Timetable", "💼 Internships"],
+    teacher: ["📋 Attendance Stats", "📅 My Classes", "📢 Post Event"],
+    canteen: ["🍕 Popular Items", "📦 Low Stock", "💰 Today's Revenue"],
+    admin: ["👥 System Stats", "📊 Analytics", "📅 Events Overview"],
+  };
+  const chips = promptChips[userRole] ?? promptChips.student;
+
+  const handleChipClick = (chipText: string) => {
+    if (loading) return;
+    setMessages((m) => [...m, { id: Date.now().toString(), role: "user", content: chipText }]);
+    setInput("");
+    setLoading(true);
+    fetch("/api/ai/chatbot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: userRole, query: chipText, timetable, studentId: userId, userName })
+    })
+    .then(res => res.json())
+    .then(data => {
+      setMessages((m) => [...m, { id: (Date.now()+1).toString(), role: "ai", content: data.reply ?? data.error, source: data.source }]);
+    })
+    .catch(() => {
+      setMessages((m) => [...m, { id: (Date.now()+1).toString(), role: "ai", content: "Sorry, ARC AI is unavailable right now." }]);
+    })
+    .finally(() => setLoading(false));
+  };
+
   return (
     <>
       {!open && (
@@ -85,6 +113,21 @@ export function ArcChatbot({ userRole = "student", timetable }: ArcChatbotProps)
             ))}
             {loading && <div className="flex justify-start"><div className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2"><Loader2 className="h-4 w-4 animate-spin text-[#e78a53]" /></div></div>}
           </div>
+
+          {/* Quick Prompt Chips */}
+          <div className="px-3 py-2 bg-zinc-900/90 border-t border-zinc-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            {chips.map((chip, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleChipClick(chip)}
+                disabled={loading}
+                className="whitespace-nowrap text-[11px] px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors flex-shrink-0"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+
           <div className="flex gap-2 p-3 bg-zinc-800 border-t border-zinc-700">
             <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Ask anything..." className="bg-zinc-700 border-zinc-600 text-white text-sm placeholder:text-zinc-400" />
             <Button size="icon" onClick={send} disabled={loading} className="bg-[#e78a53] hover:bg-[#d4784a] shrink-0"><Send className="h-4 w-4" /></Button>

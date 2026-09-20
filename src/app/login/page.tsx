@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, ShieldQuestion, Lock, X, CheckCircle2, Loader2 } from "lucide-react"
+import { AlertCircle, ShieldQuestion, Lock, X, CheckCircle2, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
 // ── Forgot Password Modal ─────────────────────────────────────────────────────
@@ -298,6 +298,60 @@ export default function LoginPage() {
     }
   }
 
+  const handleQuickDemoLogin = (demoRole: 'student' | 'teacher' | 'canteen' | 'admin') => {
+    setIsLoading(true)
+    let demoUser: any = {}
+    let targetUrl = "/student/dashboard"
+
+    if (demoRole === 'student') {
+      demoUser = {
+        _id: "demo-student-id",
+        id: "demo-student-id",
+        name: "Rahul Sharma",
+        email: "rahul.sharma@student.edu",
+        role: "student",
+        branch: "CS",
+        semester: 6
+      }
+      targetUrl = "/student/dashboard"
+    } else if (demoRole === 'teacher') {
+      demoUser = {
+        _id: "demo-teacher-id",
+        id: "demo-teacher-id",
+        name: "Prof. Priya Verma",
+        email: "priya.verma@college.edu",
+        role: "teacher",
+        department: "Computer Science"
+      }
+      targetUrl = "/teacher/dashboard"
+    } else if (demoRole === 'canteen') {
+      demoUser = {
+        _id: "canteen-1",
+        id: "canteen-1",
+        name: "Sanjay Canteen Manager",
+        email: "sanjay.canteen@campus.in",
+        role: "canteen"
+      }
+      targetUrl = "/canteen/dashboard"
+    } else if (demoRole === 'admin') {
+      demoUser = {
+        _id: "admin-id",
+        id: "admin-id",
+        name: "System Administrator",
+        email: "admin@campus.in",
+        username: "ADMIN1",
+        role: "admin"
+      }
+      targetUrl = "/admin/dashboard"
+    }
+
+    localStorage.setItem('isLoggedIn', 'true')
+    localStorage.setItem('userRole', demoRole)
+    localStorage.setItem('currentUser', JSON.stringify(demoUser))
+    toast.success(`Logged in as ${demoRole.toUpperCase()} Demo Account`)
+    window.location.href = targetUrl
+  }
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <AnimatePresence>
@@ -315,6 +369,25 @@ export default function LoginPage() {
         </svg>
         <span>Back to Home</span>
       </Link>
+
+      {/* Floating Demo Switcher for Hackathon Judges */}
+      <div className="absolute top-6 right-6 z-20 hidden md:flex items-center gap-1 bg-zinc-900/90 border border-zinc-800 p-1.5 rounded-2xl shadow-xl backdrop-blur-md">
+        <span className="text-xs font-semibold text-[#e78a53] px-2 flex items-center gap-1">
+          <Sparkles className="h-3.5 w-3.5" /> Quick Demo:
+        </span>
+        <Button size="sm" variant="ghost" onClick={() => handleQuickDemoLogin('student')} className="h-7 text-xs text-zinc-300 hover:text-white hover:bg-zinc-800">
+          👨‍🎓 Student
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => handleQuickDemoLogin('teacher')} className="h-7 text-xs text-zinc-300 hover:text-white hover:bg-zinc-800">
+          👩‍🏫 Teacher
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => handleQuickDemoLogin('canteen')} className="h-7 text-xs text-zinc-300 hover:text-white hover:bg-zinc-800">
+          🍕 Canteen
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => handleQuickDemoLogin('admin')} className="h-7 text-xs text-zinc-300 hover:text-white hover:bg-zinc-800">
+          🛡️ Admin
+        </Button>
+      </div>
 
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-black to-zinc-900" />
